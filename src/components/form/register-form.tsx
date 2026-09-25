@@ -50,7 +50,10 @@ export function RegisterForm() {
         email: value.email,
         password: value.password,
         phone: value.phone,
-        role: Role.CUSTOMER
+        role: Role.CUSTOMER,
+        customer: {
+          contactNumber: value.phone,
+        },
       };
 
       registration(registrationData, {
