@@ -5,9 +5,9 @@ import { ReactNode } from "react";
 
 export default function layout({ children }: { children: ReactNode }) {
   return (
-    <RoleGuard roles={["ADMIN", "SUPER_ADMIN"]}>
+    <RoleGuard roles={["CUSTOMER"]}>
       {/** biome-ignore lint/a11y/useValidAriaRole: <explanation> */}
-        <DashboardShell role="ADMIN">{children}</DashboardShell>
+        <DashboardShell role="CUSTOMER">{children}</DashboardShell>
 
       {/* {children} */}
     </RoleGuard>
