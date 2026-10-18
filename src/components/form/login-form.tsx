@@ -12,12 +12,12 @@ import { toast } from "../ui/toast";
 import { Spinner } from "../ui/spinner";
 import Link from "next/link";
 import GoogleLoginComponent from "../modules/google-login/googleLogin";
-// import { useState } from "react";
-// import { Eye, EyeClosed } from "lucide-react";
+import { useState } from "react";
+import { Eye, EyeClosed } from "lucide-react";
 
 export default function LoginForm() {
 
-    //  const [showPassword, setShowPassword] = useState(false);
+     const [showPassword, setShowPassword] = useState(false);
     const router = useRouter();
     const {mutate: login, isPending: loginPending} = useLogin();
 
@@ -38,19 +38,18 @@ export default function LoginForm() {
             login(loginData, {
                 onSuccess: (res) => {
                     toast.add({
-            title: "Login Success",
-            description: "Welcome back",
-            type: "success",
-          });
+                      title: "Login Success",
+                      description: "Welcome back",
+                      type: "success",                                                                                                      
+                  });
                     router.push('/');
                     // console.log(res);
                 },
                 onError: (err) => {
                      toast.add({
-            title: "Authorization failure",
-            description:
-              err.message || "Something went wrong. Please try again",
-            type: "error",
+                      title: "Authorization failure",
+                      description: err.message || "Something went wrong. Please try again",
+                      type: "error",
           });
                     console.log(err);
                 }
@@ -105,19 +104,19 @@ export default function LoginForm() {
                     return (
                     <Field data-invalid={isInvalid}>
                   <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                  {/* <div className="relative"> */}
+                  <div className="relative">
                     <Input
                       id={field.name}
                       name={field.name}
-                    //   type={showPassword ? "text" : "password"}
-                    type="password"
+                      type={showPassword ? "text" : "password"}
+                    // type="password"
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
                       value={field.state.value}
                       autoComplete="off"
                       aria-invalid={isInvalid}
                     />
-                    {/* <button
+                    <button
                       className="absolute right-3 top-1/2 -translate-y-1/2"
                       type="button"
                       onClick={() => setShowPassword((prev) => !prev)}
@@ -128,7 +127,7 @@ export default function LoginForm() {
                         <Eye className="size-4" />
                       )}
                     </button>
-                  </div> */}
+                  </div>
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}
                 </Field>)
                 }}
@@ -138,7 +137,7 @@ export default function LoginForm() {
             <Button disabled={loginPending} type="submit">
                  {loginPending ? (
               <>
-                <Spinner /> submitting
+                <Spinner /> submitting...
               </>
             ) : (
               "Submit"

@@ -57,6 +57,8 @@ export default function VerifyAccountForm() {
             otp
         }
 
+        console.log("otp", otp);
+
         verify(verifyData, {
         onSuccess: (res) => {
           if (!res.success) {

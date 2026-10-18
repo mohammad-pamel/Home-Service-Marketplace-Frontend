@@ -9,8 +9,28 @@ export const customerRoutes = [
         url: `${prefix}`,
       },
       {
+        title: "My Requests",
+        url: `${prefix}/my-requests`,
+      },
+      {
+        title: "My Bookings",
+        url: `${prefix}/my-bookings`,
+      },
+      {
+        title: "Estimates",
+        url: `${prefix}/estimates`,
+      },
+      {
         title: "Payment History",
-        url: `${prefix}`,
+        url: `${prefix}/payments`,
+      },
+      {
+        title: "Reviews",
+        url: `${prefix}/reviews`,
+      },
+      {
+        title: "My Profile",
+        url: `${prefix}/profile`,
       },
     ],
   },

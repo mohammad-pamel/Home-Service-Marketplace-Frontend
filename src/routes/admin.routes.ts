@@ -9,8 +9,32 @@ export const adminRoutes = [
         url: `${prefix}`,
       },
       {
-        title: "Doctor Approval",
-        url: `${prefix}/approve-doctor`,
+        title: "All Users",
+        url: `${prefix}/all-users`,
+      },
+      {
+        title: "All Providers",
+        url: `${prefix}/all-providers`,
+      },
+      {
+        title: "All Categories",
+        url: `${prefix}/all-categories`,
+      },
+      {
+        title: "All Services",
+        url: `${prefix}/all-services`,
+      },
+      {
+        title: "All Requests",
+        url: `${prefix}/all-requests`,
+      },
+      {
+        title: "All Bookings",
+        url: `${prefix}/all-bookings`,
+      },
+      {
+        title: "All Payments",
+        url: `${prefix}/all-payments`,
       },
     ],
   },
