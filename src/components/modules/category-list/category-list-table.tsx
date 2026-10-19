@@ -67,21 +67,22 @@ export default function CategoryListTable() {
   <TableCaption>A list of your all categories: {categories.length}</TableCaption>
   <TableHeader>
     <TableRow>
-      <TableHead className="w-[100px]">Name</TableHead>
-      <TableHead>Slug</TableHead>
-      <TableHead>Status</TableHead>
-      <TableHead className="text-right">Action</TableHead>
+      <TableHead className="text-center">Name</TableHead>
+      <TableHead className="text-center">Slug</TableHead>
+      <TableHead className="text-center">Status</TableHead>
+      <TableHead className="text-center">Action</TableHead>
     </TableRow>
   </TableHeader>
   <TableBody>
     {
       categories.map((category: Category) => (<TableRow key={category.id}>
-      <TableCell className="font-medium">{category.name}</TableCell>
-      <TableCell>{category.slug}</TableCell>
-      <TableCell>{category.isActive ? "true" : "false"}</TableCell>
-      <TableCell className="text-right">
+      <TableCell className="font-medium text-center">{category.name}</TableCell>
+      <TableCell className="text-center">{category.slug}</TableCell>
+      <TableCell className="text-center">{category.isActive ? "true" : "false"}</TableCell>
+      <TableCell className="text-center">
         {/* <Button className="bg-red-100 hover:bg-red-400 text-red-600" onClick={() => handleDelete(category.id)}>Delete</Button> */}
-        <CategoryUpdateDialog></CategoryUpdateDialog>
+        {/* <CategoryUpdateDialog categoryId={category.id} /> */}
+        <CategoryUpdateDialog category={category} />
         {!confirmDelete && (
             <Button className="bg-red-100 hover:bg-red-400 text-red-600" variant="destructive" onClick={() => setConfirmDelete(true)}>Delete</Button>
         )}

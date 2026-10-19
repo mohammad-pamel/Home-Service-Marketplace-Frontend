@@ -9,20 +9,31 @@ import { toast } from "../ui/toast";
 // import { useCreateSchedule } from "@/hooks";
 // import { scheduleSchema } from "@/validation";
 import { Spinner } from "../ui/spinner";
-import { useCreateCategory } from "@/hooks/admin.hook";
+import { useUpdateCategory } from "@/hooks/admin.hook";
+
+type Category = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+};
 
 export default function UpdateCategoryForm({
   handleClose,
+  category
 }: {
   handleClose: () => void;
+  category: Category;
 }) {
-  const { mutate: create, isPending } = useCreateCategory();
+  const { mutate: update, isPending } = useUpdateCategory();
+
+  console.log("category", category)
 
   const form = useForm({
     defaultValues: {
-      name: "",
-      slug: "",
-      description: ""
+      name: category.name,
+      slug: category.slug,
+      description: category.description
     },
     // validators: {
     //   onSubmit: categorySchema,
@@ -34,33 +45,68 @@ export default function UpdateCategoryForm({
         description: value.description,
       };
 
-      create(categoryValue, {
-        onSuccess: (res) => {
-          if (!res.success) {
-            toast.add({
-              title: "Server Failure",
-              description: "Something went wrong. Please try again",
-              type: "error",
-            });
-            return;
-          }
-          toast.add({
-            title: "Category Created",
-            description: "Your category is saved as a draft",
-            type: "success",
-          });
-          handleClose();
-        },
-        onError: (err: { message: any; }) => {
-          toast.add({
-            title: "Category creation failed",
-            description:
-              err.message || "Something went wrong. Please try again",
-            type: "error",
-          });
-          handleClose();
-        },
+      console.log("categoryValue", categoryValue)
+
+    //   update(categoryValue, {
+    //     onSuccess: (res) => {
+    //       if (!res.success) {
+    //         toast.add({
+    //           title: "Server Failure",
+    //           description: "Something went wrong. Please try again",
+    //           type: "error",
+    //         });
+    //         return;
+    //       }
+    //       toast.add({
+    //         title: "Category Updated",
+    //         description: "Your category is saved as a draft",
+    //         type: "success",
+    //       });
+    //       handleClose();
+    //     },
+    //     onError: (err: { message: any; }) => {
+    //       toast.add({
+    //         title: "Category upadate failed",
+    //         description:
+    //           err.message || "Something went wrong. Please try again",
+    //         type: "error",
+    //       });
+    //       handleClose();
+    //     },
+    //   });
+    update(
+  {
+    payload: categoryValue,
+    categoryId: category.id,
+  },
+  {
+    onSuccess: (res) => {
+      if (!res.success) {
+        toast.add({
+          title: "Server Failure",
+          description: "Something went wrong. Please try again",
+          type: "error",
+        });
+        return;
+      }
+
+      toast.add({
+        title: "Category Updated",
+        description: "Category updated successfully",
+        type: "success",
       });
+
+      handleClose();
+    },
+    onError: (err) => {
+      toast.add({
+        title: "Category update failed",
+        description: err.message || "Something went wrong. Please try again",
+        type: "error",
+      });
+    },
+  },
+);
     },
   });
 
@@ -125,6 +171,7 @@ export default function UpdateCategoryForm({
                   autoComplete="off"
                   aria-invalid={isInvalid}
                   value={field.state.value}
+                  
                 />
                 {isInvalid && <FieldError errors={field.state.meta.errors} />}
               </Field>

@@ -18,7 +18,7 @@ export default function UserListTable() {
   <TableCaption>A list of your all users: {users.length}</TableCaption>
   <TableHeader>
     <TableRow>
-      <TableHead className="w-[100px]">Name</TableHead>
+      <TableHead>Name</TableHead>
       <TableHead>Email</TableHead>
       <TableHead>Phone</TableHead>
       <TableHead>Status</TableHead>
