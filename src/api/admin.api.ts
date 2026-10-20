@@ -7,13 +7,20 @@ import type {
   PaginatedResponse,
   Provider,
   Service,
+  ServiceRequest,
   UpdateCategoryVariables,
   UpdateServiceVariables,
 } from "@/types";
 
+
+// Users related api
+
 export function getAllUsers() {
   return apiClient("/user");
 }
+
+
+// Category related api
 
 export function getAllCategories() {
   return apiClient("/categories");
@@ -50,6 +57,9 @@ export function deleteCategory(categoryId: string) {
   });
 }
 
+
+// Service related api
+
 export function getAllServices() {
   return apiClient<ApiResponse<PaginatedResponse<Service>>>("/services");
 }
@@ -75,6 +85,8 @@ export function deleteService(serviceId: string) {
 }
 
 
+// Provider related api
+
 export function getAllProviders() {
   return apiClient<ApiResponse<Provider[]>>("/providers");
 }
@@ -96,4 +108,11 @@ export function unverifyProvider(providerId: string) {
       method: "PATCH",
     },
   );
+}
+
+
+// Service Request related api
+
+export function getAllServiceRequests() {
+  return apiClient<ApiResponse<ServiceRequest[]>>("/service-requests");
 }

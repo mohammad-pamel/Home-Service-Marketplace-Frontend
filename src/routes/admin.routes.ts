@@ -25,8 +25,8 @@ export const adminRoutes = [
         url: `${prefix}/all-services`,
       },
       {
-        title: "All Requests",
-        url: `${prefix}/all-requests`,
+        title: "All Service Requests",
+        url: `${prefix}/all-service-requests`,
       },
       {
         title: "All Bookings",

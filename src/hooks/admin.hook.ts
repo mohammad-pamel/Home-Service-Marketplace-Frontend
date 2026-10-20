@@ -6,6 +6,7 @@ import {
   deleteService,
   getAllCategories,
   getAllProviders,
+  getAllServiceRequests,
   getAllServices,
   getAllUsers,
   unverifyProvider,
@@ -14,6 +15,9 @@ import {
   verifyProvider,
 } from "@/api/admin.api";
 
+
+// Users 
+
 export function useGetAllUsers() {
   return useQuery({
     queryKey: ["users"],
@@ -21,6 +25,9 @@ export function useGetAllUsers() {
     retry: false,
   });
 }
+
+
+//Categories
 
 export function useGetAllCategories() {
   return useQuery({
@@ -62,6 +69,9 @@ export function useDeleteCategory() {
     },
   });
 }
+
+
+// Service
 
 export function useGetAllServices() {
   return useQuery({
@@ -105,6 +115,8 @@ export function useDeleteService() {
 }
 
 
+// Providers
+
 export function useGetAllProviders() {
   return useQuery({
     queryKey: ["providers"],
@@ -112,7 +124,6 @@ export function useGetAllProviders() {
     retry: false,
   });
 }
-
 
 export function useVerifyProvider() {
   const queryClient = useQueryClient();
@@ -131,5 +142,16 @@ export function useUnverifyProvider() {
     mutationFn: unverifyProvider,
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["providers"] }),
+  });
+}
+
+
+// Service Request
+
+
+export function useGetAllServiceRequests() {
+  return useQuery({
+    queryKey: ["service-requests"],
+    queryFn: getAllServiceRequests,
   });
 }

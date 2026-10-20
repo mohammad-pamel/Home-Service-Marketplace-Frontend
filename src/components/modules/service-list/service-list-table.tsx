@@ -32,8 +32,6 @@ const services: Service[] = Array.isArray(data?.data?.data)
   : [];
   const categories: Category[] = categoryData?.data ?? [];
 
-  console.log("Services API response:", data);
-console.log("Services data:", data?.data);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
