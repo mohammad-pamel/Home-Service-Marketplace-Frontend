@@ -11,3 +11,8 @@ export interface CreateCategoryPayload {
   slug: string;
   description: string;
 }
+
+export interface UpdateCategoryVariables  {
+  payload: CreateCategoryPayload;
+  categoryId: string;
+};

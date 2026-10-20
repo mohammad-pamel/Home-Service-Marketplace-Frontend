@@ -1,7 +1,9 @@
-import React from 'react'
+import ServiceListTable from "@/components/modules/service-list/service-list-table";
 
 export default function AllServicesPage() {
   return (
-    <div>All Services Page</div>
-  )
+    <main className="p-6">
+      <ServiceListTable />
+    </main>
+  );
 }

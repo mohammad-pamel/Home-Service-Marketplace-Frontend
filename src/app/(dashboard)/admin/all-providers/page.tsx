@@ -1,7 +1,5 @@
-import React from 'react'
+import ProviderListTable from "@/components/modules/provider-list/provider-list-table";
 
 export default function AllProvidersPage() {
-  return (
-    <div>All Providers Page</div>
-  )
+  return <ProviderListTable />;
 }
