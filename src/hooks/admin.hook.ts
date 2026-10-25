@@ -4,11 +4,16 @@ import {
   createService,
   deleteCategory,
   deleteService,
+  getAllAvailability,
+  getAllBookings,
   getAllCategories,
+  getAllEstimates,
+  getAllPayments,
   getAllProviders,
   getAllServiceRequests,
   getAllServices,
   getAllUsers,
+  getAllWorkLogs,
   unverifyProvider,
   updateCategory,
   updateService,
@@ -153,5 +158,58 @@ export function useGetAllServiceRequests() {
   return useQuery({
     queryKey: ["service-requests"],
     queryFn: getAllServiceRequests,
+  });
+}
+
+
+
+// Bookings
+
+
+export function useGetAllBookings() {
+  return useQuery({
+    queryKey: ["admin-bookings"],
+    queryFn: getAllBookings,
+  });
+}
+
+
+// Payments
+
+export function useGetAllPayments() {
+  return useQuery({
+    queryKey: ["admin-payments"],
+    queryFn: getAllPayments,
+  });
+}
+
+
+// Availability
+
+
+export function useGetAllAvailability() {
+  return useQuery({
+    queryKey: ["admin-availability"],
+    queryFn: getAllAvailability,
+  });
+}
+
+
+// Estimates
+
+export function useGetAllEstimates() {
+  return useQuery({
+    queryKey: ["admin-estimates"],
+    queryFn: getAllEstimates,
+  });
+}
+
+
+// Work Logs
+
+export function useGetAllWorkLogs() {
+  return useQuery({
+    queryKey: ["admin-work-logs"],
+    queryFn: getAllWorkLogs,
   });
 }

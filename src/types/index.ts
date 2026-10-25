@@ -6,3 +6,8 @@ export * from "./sidebar.type";
 export * from "./user.type";
 export * from "./provider.type";
 export * from "./service-request.type";
+export * from "./booking.type";
+export * from "./payment.type";
+export * from "./availability.type";
+export * from "./estimate.type";
+export * from "./worklog.type";

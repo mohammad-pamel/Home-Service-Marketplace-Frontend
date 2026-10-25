@@ -36,6 +36,18 @@ export const adminRoutes = [
         title: "All Payments",
         url: `${prefix}/all-payments`,
       },
+      {
+        title: "All Availability",
+        url: `${prefix}/all-availability`,
+      },
+      {
+        title: "All Estimates",
+        url: `${prefix}/all-estimates`,
+      },
+      {
+        title: "All Worklogs",
+        url: `${prefix}/all-worklogs`,
+      },
     ],
   },
   {

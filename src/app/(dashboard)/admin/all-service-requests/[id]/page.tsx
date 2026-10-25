@@ -1,11 +1,21 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useGetAllServiceRequests } from "@/hooks/admin.hook";
 import { Button } from "@/components/ui/button";
+import { createAssignment, getAllProviders } from "@/api";
+import { Provider } from "@/types";
+
+// import { useEffect, useState } from "react";
+// import { useParams, useRouter } from "next/navigation";
+// import {
+//   createAssignment,
+//   getAllProviders,
+// } from "@/api/admin.api";
+// import type { Provider } from "@/types";
 
 // export function generateStaticParams() {
 //   return [];
@@ -46,6 +56,32 @@ export default function ServiceRequestDetailsPage() {
   const { data, isLoading, isError, refetch, isFetching } =
     useGetAllServiceRequests();
 
+    const [providers, setProviders] = useState<Provider[]>([]);
+const [selectedProviderId, setSelectedProviderId] = useState("");
+const [isAssigning, setIsAssigning] = useState(false);
+const [assignError, setAssignError] = useState("");
+const [assignSuccess, setAssignSuccess] = useState("");
+
+useEffect(() => {
+  let active = true;
+
+  getAllProviders()
+    .then((response) => {
+      if (active) {
+        setProviders(response.data ?? []);
+      }
+    })
+    .catch(() => {
+      if (active) {
+        setAssignError("Failed to load providers.");
+      }
+    });
+
+  return () => {
+    active = false;
+  };
+}, []);
+
   const request = data?.data?.find((item) => item.id === params.id);
 
   async function copyRequestId() {
@@ -56,6 +92,37 @@ export default function ServiceRequestDetailsPage() {
       setCopied(false);
     }
   }
+
+  async function handleAssignProvider() {
+  if (!selectedProviderId) {
+    setAssignError("Please select a provider.");
+    return;
+  }
+
+  setIsAssigning(true);
+  setAssignError("");
+  setAssignSuccess("");
+
+  try {
+    await createAssignment({
+      serviceRequestId: request!.id,
+      providerId: selectedProviderId,
+    });
+
+    setSelectedProviderId("");
+    setAssignSuccess("Provider assigned successfully.");
+
+    await refetch();
+  } catch (error) {
+    setAssignError(
+      error instanceof Error
+        ? error.message
+        : "Failed to assign provider.",
+    );
+  } finally {
+    setIsAssigning(false);
+  }
+}
 
   if (isLoading) {
     return <div className="p-6">Loading request details...</div>;
@@ -81,7 +148,7 @@ export default function ServiceRequestDetailsPage() {
         <p className="text-sm text-muted-foreground">
           This request could not be found in the service request list.
         </p>
-        <Button onClick={() => router.push("/admin/service-requests")}>
+        <Button onClick={() => router.push("/admin/all-service-requests")}>
           Back to Requests
         </Button>
       </div>
@@ -220,6 +287,113 @@ export default function ServiceRequestDetailsPage() {
       </section>
 
       {/* Provider Assignments */}
+      {/* <section className="rounded-lg border p-5">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">Provider Assignments</h2>
+          <span className="text-sm text-muted-foreground">
+            {request.assignments.length} assignment(s)
+          </span>
+        </div>
+
+        {request.assignments.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No provider has been assigned yet.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {(request.status === "PENDING" ||
+  request.status === "MATCHED") && (
+  <div className="mb-6 space-y-3 rounded-md border p-4">
+    <h3 className="font-semibold">Assign a Provider</h3>
+
+    <select
+      value={selectedProviderId}
+      onChange={(event) =>
+        setSelectedProviderId(event.target.value)
+      }
+      disabled={isAssigning}
+      className="w-full rounded-md border bg-background px-3 py-2"
+    >
+      <option value="">Select a provider</option>
+
+      {providers
+  .filter(
+    (provider) =>
+      !request.assignments.some(
+        (assignment) =>
+          assignment.providerId === provider.user.id,
+      ),
+  )
+  .map((provider) => (
+    <option key={provider.user.id} value={provider.user.id}>
+      {provider.user.name} — {provider.user.email}
+    </option>
+  ))}
+    </select>
+
+    <Button
+      onClick={handleAssignProvider}
+      disabled={isAssigning || !selectedProviderId}
+    >
+      {isAssigning ? "Assigning..." : "Assign Provider"}
+    </Button>
+
+    {assignError && (
+      <p className="text-sm text-red-500">{assignError}</p>
+    )}
+
+    {assignSuccess && (
+      <p className="text-sm text-green-600">{assignSuccess}</p>
+    )}
+  </div>
+)}
+            {request.assignments.map((assignment) => (
+              <div
+                key={assignment.id}
+                className="rounded-md border p-4"
+              >
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <Detail
+                    label="Provider Name"
+                    value={assignment.provider.name}
+                  />
+                  <Detail
+                    label="Provider Email"
+                    value={assignment.provider.email}
+                  />
+                  <Detail
+                    label="Provider Phone"
+                    value={assignment.provider.phone}
+                  />
+                  <Detail
+                    label="Assignment Status"
+                    value={assignment.status}
+                  />
+                  <Detail
+                    label="Assigned At"
+                    value={formatDate(assignment.assignedAt)}
+                  />
+                  <Detail
+                    label="Responded At"
+                    value={formatDate(assignment.respondedAt)}
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <Button variant="outline" >
+                    <a href={`mailto:${assignment.provider.email}`}>
+                      Contact Provider
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section> */}
+
+      
+      {/* Provider Assignments */}
       <section className="rounded-lg border p-5">
         <div className="mb-5 flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">Provider Assignments</h2>
@@ -228,6 +402,65 @@ export default function ServiceRequestDetailsPage() {
           </span>
         </div>
 
+        {/* Assign Provider Form */}
+        {(request.status === "PENDING" ||
+          request.status === "MATCHED") && (
+          <div className="mb-6 space-y-3 rounded-md border p-4">
+            <h3 className="font-semibold">Assign a Provider</h3>
+
+            <select
+              value={selectedProviderId}
+              onChange={(event) => {
+                setSelectedProviderId(event.target.value);
+                setAssignError("");
+              }}
+              disabled={isAssigning}
+              className="w-full rounded-md border bg-background px-3 py-2"
+            >
+              <option value="">Select a provider</option>
+
+              {providers
+                .filter(
+                  (provider) =>
+                    !request.assignments.some(
+                      (assignment) =>
+                        assignment.providerId === provider.user.id,
+                    ),
+                )
+                .map((provider) => (
+                  <option
+                    key={provider.user.id}
+                    value={provider.user.id}
+                  >
+                    {provider.user.name} — {provider.user.email}
+                  </option>
+                ))}
+            </select>
+
+            {providers.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No providers found. Please check provider accounts and profiles.
+              </p>
+            )}
+
+            <Button
+              onClick={handleAssignProvider}
+              disabled={isAssigning || !selectedProviderId}
+            >
+              {isAssigning ? "Assigning..." : "Assign Provider"}
+            </Button>
+
+            {assignError && (
+              <p className="text-sm text-red-500">{assignError}</p>
+            )}
+
+            {assignSuccess && (
+              <p className="text-sm text-green-600">{assignSuccess}</p>
+            )}
+          </div>
+        )}
+
+        {/* Existing Assignments */}
         {request.assignments.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No provider has been assigned yet.
@@ -278,6 +511,7 @@ export default function ServiceRequestDetailsPage() {
           </div>
         )}
       </section>
+
 
       {/* Booking Information */}
       <section className="rounded-lg border p-5">

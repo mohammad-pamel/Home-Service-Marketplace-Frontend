@@ -34,3 +34,39 @@ export interface ProviderApiResponse {
   message: string;
   data: Provider[];
 }
+
+
+
+export interface ProviderProfile {
+  id: string;
+  userId: string;
+  bio?: string | null;
+  experienceYears: number;
+  isVerified: boolean;
+  rating: number;
+  totalReviews: number;
+  totalJobs: number;
+  serviceArea?: string | null;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string | null;
+    status: string;
+  };
+}
+
+export interface Assignment {
+  id: string;
+  serviceRequestId: string;
+  providerId: string;
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | "COMPLETED";
+  assignedAt: string;
+  respondedAt?: string | null;
+  provider?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string | null;
+  };
+}

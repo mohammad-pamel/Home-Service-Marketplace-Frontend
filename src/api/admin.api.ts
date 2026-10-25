@@ -1,16 +1,21 @@
 import apiClient from "@/lib/apiClient";
 import type {
   ApiResponse,
+  Assignment,
   Category,
   CreateCategoryPayload,
   CreateServicePayload,
+  Estimate,
   PaginatedResponse,
+  Payment,
   Provider,
   Service,
   ServiceRequest,
   UpdateCategoryVariables,
   UpdateServiceVariables,
+  WorkLog,
 } from "@/types";
+import { Availability } from "@/types/availability.type";
 
 
 // Users related api
@@ -115,4 +120,75 @@ export function unverifyProvider(providerId: string) {
 
 export function getAllServiceRequests() {
   return apiClient<ApiResponse<ServiceRequest[]>>("/service-requests");
+}
+
+
+
+// export function getAllProviders() {
+//   return apiClient<ApiResponse<ProviderProfile[]>>("/providers");
+// }
+
+// export function createAssignment(payload: {
+//   serviceRequestId: string;
+//   providerId: string;
+// }) {
+//   return apiClient<ApiResponse<Assignment>>("/assignments", {
+//     method: "POST",
+//     body: JSON.stringify(payload),
+//   });
+// }
+
+export function createAssignment(payload: {
+  serviceRequestId: string;
+  providerId: string;
+}) {
+  return apiClient<ApiResponse<Assignment>>("/assignments", {
+    method: "POST",
+    body: payload,
+  });
+}
+export function getAssignmentsByRequest(serviceRequestId: string) {
+  return apiClient<ApiResponse<Assignment[]>>(
+    `/assignments/request/${serviceRequestId}`,
+  );
+}
+
+
+// Bookings related api
+
+export function getAllBookings() {
+  return apiClient("/bookings");
+}
+
+
+// Payments related api
+
+// export function getAllPayments() {
+//   return apiClient("/payments");
+// }
+
+export function getAllPayments() {
+  return apiClient<ApiResponse<Payment[]>>("/payments");
+}
+
+
+// Availability related api
+
+
+export function getAllAvailability() {
+  return apiClient<ApiResponse<Availability[]>>("/availability");
+}
+
+
+// Estimates related api
+
+export function getAllEstimates() {
+  return apiClient<ApiResponse<Estimate[]>>("/estimates");
+}
+
+
+// Work Logs related api
+
+export function getAllWorkLogs() {
+  return apiClient<ApiResponse<WorkLog[]>>("/work-logs");
 }
