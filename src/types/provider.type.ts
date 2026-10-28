@@ -1,4 +1,3 @@
-
 export interface ProviderUser {
   id: string;
   name: string;
@@ -35,8 +34,6 @@ export interface ProviderApiResponse {
   data: Provider[];
 }
 
-
-
 export interface ProviderProfile {
   id: string;
   userId: string;
@@ -47,6 +44,10 @@ export interface ProviderProfile {
   totalReviews: number;
   totalJobs: number;
   serviceArea?: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  createdAt: string;
+  updatedAt: string;
   user: {
     id: string;
     name: string;
@@ -69,4 +70,28 @@ export interface Assignment {
     email: string;
     phone?: string | null;
   };
+}
+
+// export interface ProviderProfile {
+//   id: string;
+//   userId: string;
+//   bio: string | null;
+//   experienceYears: number;
+//   isVerified: boolean;
+//   rating: number;
+//   totalReviews: number;
+//   totalJobs: number;
+//   serviceArea: string | null;
+//   latitude: number | null;
+//   longitude: number | null;
+//   createdAt: string;
+//   updatedAt: string;
+// }
+
+export interface ProviderProfilePayload {
+  bio?: string;
+  experienceYears?: number;
+  serviceArea?: string;
+  latitude?: number;
+  longitude?: number;
 }

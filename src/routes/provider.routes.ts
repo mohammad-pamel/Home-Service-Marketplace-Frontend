@@ -9,7 +9,7 @@ export const providerRoutes = [
         url: `${prefix}`,
       },
       {
-        title: "My Profile",
+        title: "Profile",
         url: `${prefix}/profile`,
       },
       {

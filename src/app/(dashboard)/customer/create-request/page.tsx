@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -32,42 +31,40 @@ export default function CreateServiceRequestPage() {
     preferredTime: "",
   });
 
-//   const { data: servicesResponse, isLoading: servicesLoading } = useQuery({
-//     queryKey: ["services"],
-//     queryFn: () => apiClient("/services"),
-//     retry: false,
-//   });
+  //   const { data: servicesResponse, isLoading: servicesLoading } = useQuery({
+  //     queryKey: ["services"],
+  //     queryFn: () => apiClient("/services"),
+  //     retry: false,
+  //   });
 
-//   const services: ServiceOption[] = Array.isArray(servicesResponse)
-//     ? servicesResponse
-//     : Array.isArray(
-//           (servicesResponse as { data?: ServiceOption[] } | undefined)?.data,
-//         )
-//       ? (servicesResponse as { data: ServiceOption[] }).data
-//       : [];
+  //   const services: ServiceOption[] = Array.isArray(servicesResponse)
+  //     ? servicesResponse
+  //     : Array.isArray(
+  //           (servicesResponse as { data?: ServiceOption[] } | undefined)?.data,
+  //         )
+  //       ? (servicesResponse as { data: ServiceOption[] }).data
+  //       : [];
 
+  const {
+    data: servicesResponse,
+    isLoading: servicesLoading,
+    isError: servicesError,
+    error: servicesQueryError,
+  } = useQuery({
+    queryKey: ["services"],
+    queryFn: () => apiClient("/services?status=active"),
+    retry: false,
+  });
 
-const {
-  data: servicesResponse,
-  isLoading: servicesLoading,
-  isError: servicesError,
-  error: servicesQueryError,
-} = useQuery({
-  queryKey: ["services"],
-  queryFn: () => apiClient("/services?status=active"),
-  retry: false,
-});
+  const servicesData = servicesResponse as
+    | {
+        data?: {
+          data?: ServiceOption[];
+        };
+      }
+    | undefined;
 
-const servicesData = servicesResponse as
-  | {
-      data?: {
-        data?: ServiceOption[];
-      };
-    }
-  | undefined;
-
-const services: ServiceOption[] = servicesData?.data?.data ?? [];
-
+  const services: ServiceOption[] = servicesData?.data?.data ?? [];
 
   function updateField(
     field: keyof CreateServiceRequestPayload,
@@ -84,38 +81,37 @@ const services: ServiceOption[] = servicesData?.data?.data ?? [];
 
     if (!form.serviceId) {
       toast.add({
-  title: "Service Required",
-  description: "Please select a service.",
-  type: "error",
-});
+        title: "Service Required",
+        description: "Please select a service.",
+        type: "error",
+      });
       return;
     }
 
     try {
-    //   await createRequest.mutateAsync({
-    //     ...form,
-    //     city: form.city || undefined,
-    //     area: form.area || undefined,
-    //     preferredDate: form.preferredDate || undefined,
-    //     preferredTime: form.preferredTime || undefined,
-    //   });
-    
-await createRequest.mutateAsync({
-  ...form,
-  city: form.city || undefined,
-  area: form.area || undefined,
-  preferredDate: form.preferredDate
-    ? new Date(`${form.preferredDate}T00:00:00.000Z`).toISOString()
-    : undefined,
-  preferredTime: form.preferredTime || undefined,
-});
+      //   await createRequest.mutateAsync({
+      //     ...form,
+      //     city: form.city || undefined,
+      //     area: form.area || undefined,
+      //     preferredDate: form.preferredDate || undefined,
+      //     preferredTime: form.preferredTime || undefined,
+      //   });
 
+      await createRequest.mutateAsync({
+        ...form,
+        city: form.city || undefined,
+        area: form.area || undefined,
+        preferredDate: form.preferredDate
+          ? new Date(`${form.preferredDate}T00:00:00.000Z`).toISOString()
+          : undefined,
+        preferredTime: form.preferredTime || undefined,
+      });
 
       toast.add({
-  title: "Request Created",
-  description: "Service request created successfully!",
-  type: "success",
-});
+        title: "Request Created",
+        description: "Service request created successfully!",
+        type: "success",
+      });
       router.push("/customer/my-requests");
     } catch (error) {
       const message =
@@ -124,10 +120,10 @@ await createRequest.mutateAsync({
           : "Failed to create service request.";
 
       toast.add({
-  title: "Request Failed",
-  description: message || "Failed to create service request.",
-  type: "error",
-});
+        title: "Request Failed",
+        description: message || "Failed to create service request.",
+        type: "error",
+      });
     }
   }
 
@@ -162,24 +158,20 @@ await createRequest.mutateAsync({
             {services.map((service) => (
               <option key={service.id} value={service.id}>
                 {service.name}
-                {service.category?.name
-                  ? ` — ${service.category.name}`
-                  : ""}
+                {service.category?.name ? ` — ${service.category.name}` : ""}
               </option>
             ))}
           </select>
 
-         
-{servicesError ? (
-  <p className="text-sm text-red-500">
-    Failed to load services: {servicesQueryError.message}
-  </p>
-) : !servicesLoading && services.length === 0 ? (
-  <p className="text-sm text-muted-foreground">
-    No active services found. Please try again later.
-  </p>
-) : null}
-
+          {servicesError ? (
+            <p className="text-sm text-red-500">
+              Failed to load services: {servicesQueryError.message}
+            </p>
+          ) : !servicesLoading && services.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No active services found. Please try again later.
+            </p>
+          ) : null}
         </div>
 
         <div className="space-y-2">
@@ -206,9 +198,7 @@ await createRequest.mutateAsync({
             required
             rows={4}
             value={form.description}
-            onChange={(event) =>
-              updateField("description", event.target.value)
-            }
+            onChange={(event) => updateField("description", event.target.value)}
             placeholder="Describe the problem or service you need..."
             className="w-full rounded-md border bg-background px-3 py-2.5"
           />
@@ -290,12 +280,12 @@ await createRequest.mutateAsync({
 
         <button
           type="submit"
-          disabled={createRequest.isPending || servicesLoading || services.length === 0}
+          disabled={
+            createRequest.isPending || servicesLoading || services.length === 0
+          }
           className="w-full rounded-md bg-primary px-4 py-3 font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {createRequest.isPending
-            ? "Submitting..."
-            : "Submit Service Request"}
+          {createRequest.isPending ? "Submitting..." : "Submit Service Request"}
         </button>
       </form>
     </div>

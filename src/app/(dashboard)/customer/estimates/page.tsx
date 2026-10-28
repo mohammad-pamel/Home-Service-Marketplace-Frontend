@@ -35,7 +35,6 @@ function formatDate(value?: string | null) {
 //     totalAmount?: number | string;
 //   };
 
-
 //   const amount =
 //     item.total ?? item.amount ?? item.subtotal;
 
@@ -58,41 +57,33 @@ function getAmount(estimate: Estimate) {
     : "Not available";
 }
 
-
 export default function CustomerEstimatesPage() {
   const { data, isLoading, isError, error, refetch, isFetching } =
     useGetMyEstimates();
 
-
   const [statusFilter, setStatusFilter] = useState("ALL");
 
   const response = data as { data?: Estimate[] } | undefined;
-  const estimates = Array.isArray(response?.data)
-    ? response.data
-    : [];
+  const estimates = Array.isArray(response?.data) ? response.data : [];
 
   const filteredEstimates =
     statusFilter === "ALL"
       ? estimates
-      : estimates.filter(
-          (estimate) => estimate.status === statusFilter,
-        );
+      : estimates.filter((estimate) => estimate.status === statusFilter);
 
   const pendingCount = estimates.filter((estimate) =>
-  ["DRAFT", "SENT"].includes(estimate.status),
-).length;
+    ["DRAFT", "SENT"].includes(estimate.status),
+  ).length;
 
   const approvedCount = estimates.filter(
-  (estimate) => estimate.status === "APPROVED",
-).length;
+    (estimate) => estimate.status === "APPROVED",
+  ).length;
 
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            My Estimates
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">My Estimates</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             View and track estimates for your requested services.
           </p>
@@ -104,10 +95,7 @@ export default function CustomerEstimatesPage() {
           disabled={isFetching}
           className="inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
         >
-          <RefreshCw
-            size={16}
-            className={isFetching ? "animate-spin" : ""}
-          />
+          <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
           Refresh
         </button>
       </div>
@@ -141,10 +129,10 @@ export default function CustomerEstimatesPage() {
         >
           <option value="ALL">All statuses</option>
           <option value="DRAFT">Draft</option>
-<option value="SENT">Sent</option>
-<option value="APPROVED">Approved</option>
-<option value="REJECTED">Rejected</option>
-<option value="EXPIRED">Expired</option>
+          <option value="SENT">Sent</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REJECTED">Rejected</option>
+          <option value="EXPIRED">Expired</option>
         </select>
       </div>
 
@@ -154,13 +142,9 @@ export default function CustomerEstimatesPage() {
         </div>
       ) : isError ? (
         <div className="rounded-xl border p-8 text-center">
-          <p className="font-medium text-red-600">
-            Failed to load estimates.
-          </p>
+          <p className="font-medium text-red-600">Failed to load estimates.</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            {error instanceof Error
-              ? error.message
-              : "Please try again."}
+            {error instanceof Error ? error.message : "Please try again."}
           </p>
           <button
             type="button"
@@ -226,8 +210,7 @@ export default function CustomerEstimatesPage() {
 
                   <span
                     className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
-                      statusStyles[status] ??
-                      "bg-gray-100 text-gray-600"
+                      statusStyles[status] ?? "bg-gray-100 text-gray-600"
                     }`}
                   >
                     {status.replaceAll("_", " ")}
@@ -244,20 +227,17 @@ export default function CustomerEstimatesPage() {
                 </div>
 
                 <div className="grid gap-3 text-sm sm:grid-cols-2">
-                  <Detail
-                    label="Created"
-                    value={formatDate(item.createdAt)}
-                  />
+                  <Detail label="Created" value={formatDate(item.createdAt)} />
                   <Detail
                     label="Last Updated"
                     value={formatDate(item.updatedAt)}
                   />
                   {estimate.expiresAt && (
-  <Detail
-    label="Expires On"
-    value={formatDate(estimate.expiresAt)}
-  />
-)}
+                    <Detail
+                      label="Expires On"
+                      value={formatDate(estimate.expiresAt)}
+                    />
+                  )}
                 </div>
 
                 {item.notes && (
@@ -292,9 +272,7 @@ function SummaryCard({
         <p className="text-sm text-muted-foreground">{title}</p>
         <p className="mt-2 text-2xl font-bold">{value}</p>
       </div>
-      <div className="rounded-lg bg-primary/10 p-3 text-primary">
-        {icon}
-      </div>
+      <div className="rounded-lg bg-primary/10 p-3 text-primary">{icon}</div>
     </div>
   );
 }
