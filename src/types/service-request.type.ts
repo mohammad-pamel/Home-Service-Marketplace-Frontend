@@ -95,3 +95,17 @@ export interface ServiceRequest {
   assignments: ServiceRequestAssignment[];
   booking: ServiceRequestBooking | null;
 }
+
+
+export type CreateServiceRequestPayload = {
+  serviceId: string;
+  title: string;
+  description: string;
+  address: string;
+  city?: string;
+  area?: string;
+  latitude?: number;
+  longitude?: number;
+  preferredDate?: string;
+  preferredTime?: string;
+};

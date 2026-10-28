@@ -1,5 +1,6 @@
 
 import apiClient from "@/lib/apiClient";
+import { CreateServiceRequestPayload } from "@/types";
 
 // Customer's own service requests
 export function getMyServiceRequests() {
@@ -50,3 +51,13 @@ export function updateMyProfile(payload: {
 }
 
 
+// Service Request related api
+
+export async function createServiceRequest(
+  payload: CreateServiceRequestPayload,
+) {
+  return apiClient("/service-requests", {
+    method: "POST",
+    body: payload,
+  });
+}

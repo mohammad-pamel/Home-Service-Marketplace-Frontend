@@ -9,6 +9,10 @@ export const customerRoutes = [
         url: `${prefix}`,
       },
       {
+        title: "Create Requests",
+        url: `${prefix}/create-request`,
+      },
+      {
         title: "My Requests",
         url: `${prefix}/my-requests`,
       },

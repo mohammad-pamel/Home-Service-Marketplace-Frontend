@@ -28,27 +28,36 @@ function formatDate(value?: string | null) {
       });
 }
 
+// function getAmount(estimate: Estimate) {
+//   const item = estimate as Estimate & {
+//     amount?: number | string;
+//     estimatedAmount?: number | string;
+//     totalAmount?: number | string;
+//   };
+
+
+//   const amount =
+//     item.total ?? item.amount ?? item.subtotal;
+
+//   if (amount === undefined || amount === null || amount === "") {
+//     return "Not available";
+//   }
+
+//   const parsed = Number(amount);
+
+//   return Number.isFinite(parsed)
+//     ? `৳${parsed.toLocaleString("en-BD")}`
+//     : String(amount);
+// }
+
 function getAmount(estimate: Estimate) {
-  const item = estimate as Estimate & {
-    amount?: number | string;
-    estimatedAmount?: number | string;
-    totalAmount?: number | string;
-  };
+  const amount = Number(estimate.total);
 
-
-  const amount =
-    item.total ?? item.amount ?? item.subtotal;
-
-  if (amount === undefined || amount === null || amount === "") {
-    return "Not available";
-  }
-
-  const parsed = Number(amount);
-
-  return Number.isFinite(parsed)
-    ? `৳${parsed.toLocaleString("en-BD")}`
-    : String(amount);
+  return Number.isFinite(amount)
+    ? `৳${amount.toLocaleString("en-BD")}`
+    : "Not available";
 }
+
 
 export default function CustomerEstimatesPage() {
   const { data, isLoading, isError, error, refetch, isFetching } =
@@ -243,12 +252,12 @@ export default function CustomerEstimatesPage() {
                     label="Last Updated"
                     value={formatDate(item.updatedAt)}
                   />
-                  {item.validUntil && (
-                    <Detail
-                      label="Valid Until"
-                      value={formatDate(item.validUntil)}
-                    />
-                  )}
+                  {estimate.expiresAt && (
+  <Detail
+    label="Expires On"
+    value={formatDate(estimate.expiresAt)}
+  />
+)}
                 </div>
 
                 {item.notes && (

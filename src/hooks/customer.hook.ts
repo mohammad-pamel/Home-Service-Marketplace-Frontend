@@ -10,6 +10,7 @@ import {
   getMyProfile,
   updateMyProfile,
   cancelMyServiceRequest,
+  createServiceRequest,
 } from "@/api/customer.api";
 
 export function useGetMyServiceRequests() {
@@ -81,6 +82,23 @@ export function useUpdateMyProfile() {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["customer-profile"],
+      });
+    },
+  });
+}
+
+
+// Service Request
+
+
+export function useCreateServiceRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createServiceRequest,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["customer-service-requests"],
       });
     },
   });
