@@ -7,10 +7,13 @@ import {
 
 import {
     addProviderService,
+  completeWorkLog,
   createEstimate,
   createMyAvailability,
   createProviderProfile,
+  createWorkLog,
   deleteMyAvailability,
+  deleteWorkLog,
   getAvailableServices,
   getBookingDetails,
   getEstimateDetails,
@@ -18,18 +21,24 @@ import {
   getMyAvailability,
   getMyBookings,
   getMyEstimates,
+  getMyProviderPayments,
   getMyProviderProfile,
   getMyProviderServices,
+  getMyWorkLogs,
+  getProviderReviews,
+  getWorkLogsByBooking,
   removeProviderService,
   updateEstimate,
   updateMyAssignmentStatus,
   updateMyAvailability,
   updateProviderProfile,
   updateProviderService,
+  updateWorkLog,
 } from "@/api/provider.api";
 
 import type { CreateProviderServicePayload, ProviderProfilePayload, UpdateProviderServicePayload } from "@/types/provider.type";
-import { CreateAvailabilityPayload, CreateEstimatePayload, UpdateAvailabilityPayload, UpdateEstimatePayload } from "@/types";
+import { CreateAvailabilityPayload, CreateEstimatePayload, UpdateAvailabilityPayload, UpdateEstimatePayload, UpdateWorkLogPayload } from "@/types";
+
 
 const PROVIDER_PROFILE_KEY = ["provider-profile"];
 
@@ -331,3 +340,250 @@ export const useUpdateEstimate = () => {
     },
   });
 };
+
+
+
+// // Get My Work Logs
+// export function useMyWorkLogs() {
+//   return useQuery({
+//     queryKey: ["provider-work-logs"],
+//     queryFn: getMyWorkLogs,
+//   });
+// }
+
+// // Get Work Logs By Booking
+// export function useWorkLogsByBooking(bookingId: string) {
+//   return useQuery({
+//     queryKey: ["provider-work-logs", bookingId],
+//     queryFn: () => getWorkLogsByBooking(bookingId),
+//     enabled: !!bookingId,
+//   });
+// }
+
+// // Create Work Log
+// export function useCreateWorkLog() {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: createWorkLog,
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({
+//         queryKey: ["provider-work-logs"],
+//       });
+
+//       queryClient.invalidateQueries({
+//         queryKey: ["provider-bookings"],
+//       });
+
+//       toast.add({
+//         title: "Success",
+//         description: "Work log created successfully.",
+//         type: "success",
+//       });
+//     },
+//     onError: (error: Error) => {
+//       toast.add({
+//         title: "Error",
+//         description: error.message || "Failed to create work log.",
+//         type: "error",
+//       });
+//     },
+//   });
+// }
+
+// // Update Work Log
+// export function useUpdateWorkLog() {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: ({
+//       id,
+//       payload,
+//     }: {
+//       id: string;
+//       payload: UpdateWorkLogPayload;
+//     }) => updateWorkLog(id, payload),
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({
+//         queryKey: ["provider-work-logs"],
+//       });
+
+//       toast.add({
+//         title: "Success",
+//         description: "Work log updated successfully.",
+//         type: "success",
+//       });
+//     },
+//     onError: (error: Error) => {
+//       toast.add({
+//         title: "Error",
+//         description: error.message || "Failed to update work log.",
+//         type: "error",
+//       });
+//     },
+//   });
+// }
+
+// // Delete Work Log
+// export function useDeleteWorkLog() {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: deleteWorkLog,
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({
+//         queryKey: ["provider-work-logs"],
+//       });
+
+//       toast.add({
+//         title: "Success",
+//         description: "Work log deleted successfully.",
+//         type: "success",
+//       });
+//     },
+//     onError: (error: Error) => {
+//       toast.add({
+//         title: "Error",
+//         description: error.message || "Failed to delete work log.",
+//         type: "error",
+//       });
+//     },
+//   });
+// }
+
+// // Complete Work Log
+// export function useCompleteWorkLog() {
+//   const queryClient = useQueryClient();
+
+//   return useMutation({
+//     mutationFn: completeWorkLog,
+//     onSuccess: () => {
+//       queryClient.invalidateQueries({
+//         queryKey: ["provider-work-logs"],
+//       });
+
+//       queryClient.invalidateQueries({
+//         queryKey: ["provider-bookings"],
+//       });
+
+//       toast.add({
+//         title: "Success",
+//         description: "Work log completed successfully.",
+//         type: "success",
+//       });
+//     },
+//     onError: (error: Error) => {
+//       toast.add({
+//         title: "Error",
+//         description: error.message || "Failed to complete work log.",
+//         type: "error",
+//       });
+//     },
+//   });
+// }
+
+
+// Get My Work Logs
+export function useMyWorkLogs() {
+  return useQuery({
+    queryKey: ["provider-work-logs"],
+    queryFn: getMyWorkLogs,
+  });
+}
+
+// Get Work Logs By Booking
+export function useWorkLogsByBooking(bookingId: string) {
+  return useQuery({
+    queryKey: ["provider-work-logs", bookingId],
+    queryFn: () => getWorkLogsByBooking(bookingId),
+    enabled: !!bookingId,
+  });
+}
+
+// Create Work Log
+export function useCreateWorkLog() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createWorkLog,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["provider-work-logs"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["provider-bookings"],
+      });
+    },
+  });
+}
+
+// Update Work Log
+export function useUpdateWorkLog() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: UpdateWorkLogPayload;
+    }) => updateWorkLog(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["provider-work-logs"],
+      });
+    },
+  });
+}
+
+// Delete Work Log
+export function useDeleteWorkLog() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteWorkLog,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["provider-work-logs"],
+      });
+    },
+  });
+}
+
+// Complete Work Log
+export function useCompleteWorkLog() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: completeWorkLog,
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["provider-work-logs"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["provider-bookings"],
+      });
+    },
+  });
+}
+
+
+
+// Get Provider Reviews
+export function useProviderReviews(providerId: string) {
+  return useQuery({
+    queryKey: ["provider-reviews", providerId],
+    queryFn: () => getProviderReviews(providerId),
+    enabled: !!providerId,
+  });
+}
+
+
+// Get My Provider Payments
+export function useMyProviderPayments() {
+  return useQuery({
+    queryKey: ["provider-payments"],
+    queryFn: getMyProviderPayments,
+  });
+}

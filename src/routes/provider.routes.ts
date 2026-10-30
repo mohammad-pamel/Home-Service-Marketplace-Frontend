@@ -36,6 +36,14 @@ export const providerRoutes = [
         title: "Work Logs",
         url: `${prefix}/work-logs`,
       },
+      {
+        title: "Total Earnings",
+        url: `${prefix}/earnings`,
+      },
+      {
+        title: "Reviews",
+        url: `${prefix}/reviews`,
+      },
     ],
   },
   {

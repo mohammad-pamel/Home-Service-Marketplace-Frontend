@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -6,6 +5,7 @@ import {
   useMyEstimates,
   useMyBookings,
   useCreateEstimate,
+  useUpdateEstimate,
 } from "@/hooks/provider.hook";
 import type { Estimate } from "@/types/estimate.type";
 import type { Booking } from "@/types/booking.type";
@@ -33,6 +33,11 @@ export default function ProviderMyEstimatesPage() {
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [editingEstimateId, setEditingEstimateId] = useState<string | null>(
+    null,
+  );
+
+  const updateMutation = useUpdateEstimate();
 
   const estimatesQuery = useMyEstimates();
   const bookingsQuery = useMyBookings();
@@ -59,18 +64,13 @@ export default function ProviderMyEstimatesPage() {
 
   const total = subtotal + tax - discount;
 
-  const updateItem = (
-    index: number,
-    field: keyof FormItem,
-    value: string,
-  ) => {
+  const updateItem = (index: number, field: keyof FormItem, value: string) => {
     setItems((previous) =>
       previous.map((item, i) =>
         i === index
           ? {
               ...item,
-              [field]:
-                field === "description" ? value : Number(value),
+              [field]: field === "description" ? value : Number(value),
             }
           : item,
       ),
@@ -84,6 +84,41 @@ export default function ProviderMyEstimatesPage() {
     setDiscount(0);
     setNotes("");
     setExpiresAt("");
+    setEditingEstimateId(null);
+  };
+
+  const handleEdit = (estimate: Estimate) => {
+    if (!["DRAFT", "SENT"].includes(estimate.status)) {
+      toast.add({
+        title: "Cannot edit",
+        description: "This estimate can no longer be updated.",
+        type: "error",
+      });
+      return;
+    }
+
+    setEditingEstimateId(estimate.id);
+    setBookingId(estimate.bookingId);
+
+    setItems(
+      estimate.items.map((item) => ({
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice),
+      })),
+    );
+
+    setTax(Number(estimate.tax));
+    setDiscount(Number(estimate.discount));
+    setNotes(estimate.notes ?? "");
+
+    setExpiresAt(
+      estimate.expiresAt
+        ? new Date(estimate.expiresAt).toISOString().slice(0, 16)
+        : "",
+    );
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -139,9 +174,7 @@ export default function ProviderMyEstimatesPage() {
       tax,
       discount,
       notes: notes.trim() || undefined,
-      expiresAt: expiresAt
-        ? new Date(expiresAt).toISOString()
-        : undefined,
+      expiresAt: expiresAt ? new Date(expiresAt).toISOString() : undefined,
       items: items.map((item) => ({
         description: item.description.trim(),
         quantity: item.quantity,
@@ -149,24 +182,57 @@ export default function ProviderMyEstimatesPage() {
       })),
     };
 
-    createMutation.mutate(payload, {
-      onSuccess: () => {
-        toast.add({
-          title: "Success",
-          description: "Estimate created successfully.",
-          type: "success",
-        });
-        resetForm();
-      },
-      onError: () => {
-        toast.add({
-          title: "Error",
-          description:
-            "Failed to create estimate. Check the booking and try again.",
-          type: "error",
-        });
-      },
-    });
+    if (editingEstimateId) {
+      updateMutation.mutate(
+        {
+          id: editingEstimateId,
+          payload: {
+            tax,
+            discount,
+            notes: notes.trim() || undefined,
+            expiresAt: expiresAt
+              ? new Date(expiresAt).toISOString()
+              : undefined,
+            items: payload.items,
+          },
+        },
+        {
+          onSuccess: () => {
+            toast.add({
+              title: "Success",
+              description: "Estimate updated successfully.",
+              type: "success",
+            });
+            resetForm();
+          },
+          onError: () => {
+            toast.add({
+              title: "Error",
+              description: "Failed to update estimate.",
+              type: "error",
+            });
+          },
+        },
+      );
+    } else {
+      createMutation.mutate(payload, {
+        onSuccess: () => {
+          toast.add({
+            title: "Success",
+            description: "Estimate created successfully.",
+            type: "success",
+          });
+          resetForm();
+        },
+        onError: () => {
+          toast.add({
+            title: "Error",
+            description: "Failed to create estimate.",
+            type: "error",
+          });
+        },
+      });
+    }
   };
 
   if (estimatesQuery.isLoading || bookingsQuery.isLoading) {
@@ -191,11 +257,10 @@ export default function ProviderMyEstimatesPage() {
       </div>
 
       {/* Create Estimate Form */}
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-5 rounded-lg border p-5"
-      >
-        <h2 className="text-lg font-semibold">Create New Estimate</h2>
+      <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border p-5">
+        <h2 className="text-lg font-semibold">
+          {editingEstimateId ? "Update Estimate" : "Create New Estimate"}
+        </h2>
 
         <div className="space-y-2">
           <label htmlFor="booking" className="text-sm font-medium">
@@ -237,10 +302,7 @@ export default function ProviderMyEstimatesPage() {
               variant="outline"
               size="sm"
               onClick={() =>
-                setItems((previous) => [
-                  ...previous,
-                  { ...initialItem },
-                ])
+                setItems((previous) => [...previous, { ...initialItem }])
               }
             >
               Add Item
@@ -254,9 +316,7 @@ export default function ProviderMyEstimatesPage() {
               className="space-y-3 rounded-md border p-4"
             >
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium">
-                  Item {index + 1}
-                </h4>
+                <h4 className="text-sm font-medium">Item {index + 1}</h4>
 
                 {items.length > 1 && (
                   <Button
@@ -277,7 +337,7 @@ export default function ProviderMyEstimatesPage() {
               <div className="grid gap-3 md:grid-cols-3">
                 <div className="space-y-2 md:col-span-1">
                   {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-<label className="text-sm">Description</label>
+                  <label className="text-sm">Description</label>
                   <Input
                     value={item.description}
                     onChange={(e) =>
@@ -292,7 +352,7 @@ export default function ProviderMyEstimatesPage() {
 
                 <div className="space-y-2">
                   {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-<label className="text-sm">Quantity</label>
+                  <label className="text-sm">Quantity</label>
                   <Input
                     type="number"
                     min="0.01"
@@ -307,7 +367,7 @@ export default function ProviderMyEstimatesPage() {
 
                 <div className="space-y-2">
                   {/** biome-ignore lint/a11y/noLabelWithoutControl: <explanation> */}
-<label className="text-sm">Unit Price (৳)</label>
+                  <label className="text-sm">Unit Price (৳)</label>
                   <Input
                     type="number"
                     min="0.01"
@@ -322,8 +382,7 @@ export default function ProviderMyEstimatesPage() {
               </div>
 
               <p className="text-right text-sm font-medium">
-                Item Total: ৳
-                {(item.quantity * item.unitPrice).toLocaleString()}
+                Item Total: ৳{(item.quantity * item.unitPrice).toLocaleString()}
               </p>
             </div>
           ))}
@@ -414,10 +473,20 @@ export default function ProviderMyEstimatesPage() {
 
         <Button
           type="submit"
-          disabled={createMutation.isPending || availableBookings.length === 0}
+          disabled={createMutation.isPending || updateMutation.isPending}
         >
-          {createMutation.isPending ? "Creating..." : "Create Estimate"}
+          {createMutation.isPending || updateMutation.isPending
+            ? "Saving..."
+            : editingEstimateId
+              ? "Update Estimate"
+              : "Create Estimate"}
         </Button>
+
+        {editingEstimateId && (
+          <Button type="button" variant="outline" onClick={resetForm}>
+            Cancel Edit
+          </Button>
+        )}
       </form>
 
       {/* Existing Estimates */}
@@ -441,7 +510,8 @@ export default function ProviderMyEstimatesPage() {
                     Booking: {estimate.bookingId}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Customer: {estimate.booking?.customer?.name ?? "Not available"}
+                    Customer:{" "}
+                    {estimate.booking?.customer?.name ?? "Not available"}
                   </p>
                 </div>
 
@@ -459,6 +529,17 @@ export default function ProviderMyEstimatesPage() {
                   Total: ৳{Number(estimate.total).toLocaleString()}
                 </span>
               </div>
+
+              {["DRAFT", "SENT"].includes(estimate.status) && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleEdit(estimate)}
+                >
+                  Edit Estimate
+                </Button>
+              )}
 
               <p className="text-xs text-muted-foreground">
                 Created: {new Date(estimate.createdAt).toLocaleDateString()}

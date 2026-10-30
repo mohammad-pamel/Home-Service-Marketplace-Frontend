@@ -11,3 +11,4 @@ export * from "./payment.type";
 export * from "./availability.type";
 export * from "./estimate.type";
 export * from "./worklog.type";
+export * from "./review.type";

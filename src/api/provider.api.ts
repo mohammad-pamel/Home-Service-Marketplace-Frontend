@@ -1,6 +1,6 @@
 
 import apiClient from "@/lib/apiClient";
-import { Availability, Booking, CreateAvailabilityPayload, CreateEstimatePayload, Estimate, PaginatedResponse, Service, UpdateAvailabilityPayload, UpdateEstimatePayload } from "@/types";
+import { Availability, Booking, CreateAvailabilityPayload, CreateEstimatePayload, CreateWorkLogPayload, Estimate, PaginatedResponse, Payment, Review, Service, UpdateAvailabilityPayload, UpdateEstimatePayload, UpdateWorkLogPayload, WorkLog } from "@/types";
 import type {
     Assignment,
   CreateProviderServicePayload,
@@ -233,4 +233,94 @@ export function updateEstimate(
     method: "PATCH",
     body: payload,
   });
+}
+
+
+
+// Get My Work Logs
+export function getMyWorkLogs() {
+  return apiClient<ApiResponse<WorkLog[]>>(
+    "/work-logs/my-logs",
+    {
+      method: "GET",
+    }
+  );
+}
+
+// Get Work Logs By Booking
+export function getWorkLogsByBooking(bookingId: string) {
+  return apiClient<ApiResponse<WorkLog[]>>(
+    `/work-logs/booking/${bookingId}`,
+    {
+      method: "GET",
+    }
+  );
+}
+
+// Create Work Log
+export function createWorkLog(payload: CreateWorkLogPayload) {
+  return apiClient<ApiResponse<WorkLog>>(
+    "/work-logs",
+    {
+      method: "POST",
+      body: payload,
+    }
+  );
+}
+
+// Update Work Log
+export function updateWorkLog(
+  id: string,
+  payload: UpdateWorkLogPayload
+) {
+  return apiClient<ApiResponse<WorkLog>>(
+    `/work-logs/${id}`,
+    {
+      method: "PATCH",
+      body: payload,
+    }
+  );
+}
+
+// Delete Work Log
+export function deleteWorkLog(id: string) {
+  return apiClient<ApiResponse<null>>(
+    `/work-logs/${id}`,
+    {
+      method: "DELETE",
+    }
+  );
+}
+
+// Complete Work Log
+export function completeWorkLog(id: string) {
+  return apiClient<ApiResponse<WorkLog>>(
+    `/work-logs/${id}/complete`,
+    {
+      method: "PATCH",
+    }
+  );
+}
+
+
+// Get Provider Reviews
+export function getProviderReviews(providerId: string) {
+  return apiClient<ApiResponse<Review[]>>(
+    `/reviews/provider/${providerId}`,
+    {
+      method: "GET",
+    }
+  );
+}
+
+
+
+// Get My Provider Payments
+export function getMyProviderPayments() {
+  return apiClient<ApiResponse<Payment[]>>(
+    "/payments/provider/my-payments",
+    {
+      method: "GET",
+    }
+  );
 }

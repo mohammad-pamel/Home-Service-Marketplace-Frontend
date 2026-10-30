@@ -30,3 +30,17 @@ export type WorkLog = {
     };
   };
 };
+
+
+export type CreateWorkLogPayload = {
+  bookingId: string;
+  title: string;
+  description?: string;
+  startedAt?: string;
+};
+
+export type UpdateWorkLogPayload = {
+  title?: string;
+  description?: string;
+  startedAt?: string;
+};
