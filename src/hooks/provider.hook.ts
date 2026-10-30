@@ -7,15 +7,21 @@ import {
 
 import {
     addProviderService,
+  createEstimate,
   createMyAvailability,
   createProviderProfile,
   deleteMyAvailability,
   getAvailableServices,
+  getBookingDetails,
+  getEstimateDetails,
   getMyAssignments,
   getMyAvailability,
+  getMyBookings,
+  getMyEstimates,
   getMyProviderProfile,
   getMyProviderServices,
   removeProviderService,
+  updateEstimate,
   updateMyAssignmentStatus,
   updateMyAvailability,
   updateProviderProfile,
@@ -23,7 +29,7 @@ import {
 } from "@/api/provider.api";
 
 import type { CreateProviderServicePayload, ProviderProfilePayload, UpdateProviderServicePayload } from "@/types/provider.type";
-import { CreateAvailabilityPayload, UpdateAvailabilityPayload } from "@/types";
+import { CreateAvailabilityPayload, CreateEstimatePayload, UpdateAvailabilityPayload, UpdateEstimatePayload } from "@/types";
 
 const PROVIDER_PROFILE_KEY = ["provider-profile"];
 
@@ -234,6 +240,93 @@ export const useDeleteAvailability = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["provider-availability"],
+      });
+    },
+  });
+};
+
+
+
+
+
+// Get provider's bookings
+export const useMyBookings = () => {
+  return useQuery({
+    queryKey: ["provider-bookings"],
+    queryFn: getMyBookings,
+    retry: false,
+  });
+};
+
+// Get booking details
+export const useBookingDetails = (id: string) => {
+  return useQuery({
+    queryKey: ["provider-booking", id],
+    queryFn: () => getBookingDetails(id),
+    enabled: !!id,
+    retry: false,
+  });
+};
+
+
+
+
+
+// Get provider's estimates
+export const useMyEstimates = () => {
+  return useQuery({
+    queryKey: ["provider-estimates"],
+    queryFn: getMyEstimates,
+    retry: false,
+  });
+};
+
+// Get estimate details
+export const useEstimateDetails = (id: string) => {
+  return useQuery({
+    queryKey: ["provider-estimate", id],
+    queryFn: () => getEstimateDetails(id),
+    enabled: !!id,
+    retry: false,
+  });
+};
+
+// Create estimate
+export const useCreateEstimate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload: CreateEstimatePayload) =>
+      createEstimate(payload),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["provider-estimates"],
+      });
+    },
+  });
+};
+
+// Update estimate
+export const useUpdateEstimate = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+    }: {
+      id: string;
+      payload: UpdateEstimatePayload;
+    }) => updateEstimate(id, payload),
+
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["provider-estimates"],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["provider-estimate", variables.id],
       });
     },
   });

@@ -25,12 +25,12 @@ export const providerRoutes = [
         url: `${prefix}/my-assignments`,
       },
       {
-        title: "Bookings",
-        url: `${prefix}/bookings`,
+        title: "My Bookings",
+        url: `${prefix}/my-bookings`,
       },
       {
-        title: "Estimates",
-        url: `${prefix}/estimates`,
+        title: "My Estimates",
+        url: `${prefix}/my-estimates`,
       },
       {
         title: "Work Logs",

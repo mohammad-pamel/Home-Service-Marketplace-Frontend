@@ -1,6 +1,6 @@
 
 import apiClient from "@/lib/apiClient";
-import { Availability, CreateAvailabilityPayload, PaginatedResponse, Service, UpdateAvailabilityPayload } from "@/types";
+import { Availability, Booking, CreateAvailabilityPayload, CreateEstimatePayload, Estimate, PaginatedResponse, Service, UpdateAvailabilityPayload, UpdateEstimatePayload } from "@/types";
 import type {
     Assignment,
   CreateProviderServicePayload,
@@ -177,5 +177,60 @@ export function updateMyAvailability(
 export function deleteMyAvailability(id: string) {
   return apiClient<ApiResponse<null>>(`/availability/${id}`, {
     method: "DELETE",
+  });
+}
+
+
+
+
+// Get provider's bookings
+export function getMyBookings() {
+  return apiClient<ApiResponse<Booking[]>>(
+    "/bookings/my-bookings",
+    {
+      method: "GET",
+    },
+  );
+}
+
+// Get booking details
+export function getBookingDetails(id: string) {
+  return apiClient<ApiResponse<Booking>>(`/bookings/${id}`, {
+    method: "GET",
+  });
+}
+
+
+
+// Get provider's estimates
+export function getMyEstimates() {
+  return apiClient<ApiResponse<Estimate[]>>("/estimates/provider", {
+    method: "GET",
+  });
+}
+
+// Get estimate details
+export function getEstimateDetails(id: string) {
+  return apiClient<ApiResponse<Estimate>>(`/estimates/${id}`, {
+    method: "GET",
+  });
+}
+
+// Create estimate
+export function createEstimate(payload: CreateEstimatePayload) {
+  return apiClient<ApiResponse<Estimate>>("/estimates", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+// Update estimate
+export function updateEstimate(
+  id: string,
+  payload: UpdateEstimatePayload,
+) {
+  return apiClient<ApiResponse<Estimate>>(`/estimates/${id}`, {
+    method: "PATCH",
+    body: payload,
   });
 }

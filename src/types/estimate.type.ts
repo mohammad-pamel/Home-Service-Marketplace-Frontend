@@ -49,3 +49,30 @@ export type Estimate = {
     };
   };
 };
+
+
+
+export type CreateEstimatePayload = {
+  bookingId: string;
+  tax?: number;
+  discount?: number;
+  notes?: string;
+  expiresAt?: string;
+  items: {
+    description: string;
+    quantity: number;
+    unitPrice: number;
+  }[];
+};
+
+export type UpdateEstimatePayload = {
+  tax?: number;
+  discount?: number;
+  notes?: string;
+  expiresAt?: string;
+  items?: {
+    description: string;
+    quantity: number;
+    unitPrice: number;
+  }[];
+};
