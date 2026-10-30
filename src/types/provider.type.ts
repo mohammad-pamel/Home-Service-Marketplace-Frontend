@@ -57,20 +57,20 @@ export interface ProviderProfile {
   };
 }
 
-export interface Assignment {
-  id: string;
-  serviceRequestId: string;
-  providerId: string;
-  status: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | "COMPLETED";
-  assignedAt: string;
-  respondedAt?: string | null;
-  provider?: {
-    id: string;
-    name: string;
-    email: string;
-    phone?: string | null;
-  };
-}
+// export interface Assignment {
+//   id: string;
+//   serviceRequestId: string;
+//   providerId: string;
+//   status: "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELLED" | "COMPLETED";
+//   assignedAt: string;
+//   respondedAt?: string | null;
+//   provider?: {
+//     id: string;
+//     name: string;
+//     email: string;
+//     phone?: string | null;
+//   };
+// }
 
 // export interface ProviderProfile {
 //   id: string;
@@ -94,4 +94,83 @@ export interface ProviderProfilePayload {
   serviceArea?: string;
   latitude?: number;
   longitude?: number;
+}
+
+
+
+export interface Assignment {
+  id: string;
+  serviceRequestId: string;
+  providerId: string;
+  status:
+    | "PENDING"
+    | "ACCEPTED"
+    | "REJECTED"
+    | "CANCELLED"
+    | "COMPLETED";
+  assignedAt: string;
+  respondedAt?: string | null;
+
+  serviceRequest?: {
+    id: string;
+    title: string;
+    description: string;
+    preferredDate?: string | null;
+    preferredTime?: string | null;
+    status: string;
+
+    service: {
+      id: string;
+      name: string;
+      description?: string | null;
+      basePrice: number | string;
+    };
+
+    location: {
+      id: string;
+      address: string;
+      city?: string | null;
+      area?: string | null;
+    };
+
+    customer: {
+      id: string;
+      name: string;
+      email: string;
+      phone?: string | null;
+    };
+  };
+}
+
+
+
+
+
+export interface ProviderService {
+  id: string;
+  providerId: string;
+  serviceId: string;
+  price: number | string;
+  createdAt: string;
+  updatedAt: string;
+
+  service: {
+    id: string;
+    name: string;
+    description?: string | null;
+    basePrice: number | string;
+    category: {
+      id: string;
+      name: string;
+    };
+  };
+}
+
+export interface CreateProviderServicePayload {
+  serviceId: string;
+  price?: number;
+}
+
+export interface UpdateProviderServicePayload {
+  price?: number;
 }

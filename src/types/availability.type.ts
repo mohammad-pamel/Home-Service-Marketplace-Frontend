@@ -17,3 +17,18 @@ export type Availability = {
     };
   };
 };
+
+
+export interface CreateAvailabilityPayload {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isAvailable?: boolean;
+}
+
+export interface UpdateAvailabilityPayload {
+  dayOfWeek?: number;
+  startTime?: string;
+  endTime?: string;
+  isAvailable?: boolean;
+}

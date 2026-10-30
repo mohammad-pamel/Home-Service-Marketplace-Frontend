@@ -1,8 +1,13 @@
 
 import apiClient from "@/lib/apiClient";
+import { Availability, CreateAvailabilityPayload, PaginatedResponse, Service, UpdateAvailabilityPayload } from "@/types";
 import type {
+    Assignment,
+  CreateProviderServicePayload,
   ProviderProfile,
   ProviderProfilePayload,
+  ProviderService,
+  UpdateProviderServicePayload,
 } from "@/types/provider.type";
 
 interface ApiResponse<T> {
@@ -53,3 +58,124 @@ export const updateProviderProfile = async (
 
   return response.data;
 };
+
+
+
+// Get logged-in provider's assignments
+export function getMyAssignments() {
+  return apiClient<ApiResponse<Assignment[]>>(
+    "/assignments/my-assignments",
+  );
+}
+
+// Accept or reject an assignment
+export function updateMyAssignmentStatus(
+  assignmentId: string,
+  status: "ACCEPTED" | "REJECTED",
+) {
+  return apiClient<ApiResponse<Assignment>>(
+    `/assignments/${assignmentId}/status`,
+    {
+      method: "PATCH",
+      body: { status },
+    },
+  );
+}
+
+
+
+
+// Provider My Services
+
+// Get logged-in provider's services
+export function getMyProviderServices() {
+  return apiClient<ApiResponse<ProviderService[]>>(
+    "/provider-services/my-services",
+  );
+}
+
+// Add a service to provider profile
+export function addProviderService(
+  payload: CreateProviderServicePayload,
+) {
+  return apiClient<ApiResponse<ProviderService>>(
+    "/provider-services",
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+}
+
+// Update provider service price
+export function updateProviderService(
+  serviceId: string,
+  payload: UpdateProviderServicePayload,
+) {
+  return apiClient<ApiResponse<ProviderService>>(
+    `/provider-services/${serviceId}`,
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+}
+
+// Remove a service from provider profile
+export function removeProviderService(serviceId: string) {
+  return apiClient<ApiResponse<null>>(
+    `/provider-services/${serviceId}`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
+
+
+// Get available services from the service catalog
+export function getAvailableServices() {
+  return apiClient<ApiResponse<PaginatedResponse<Service>>>(
+    "/services?status=active&limit=100",
+  );
+}
+
+
+
+// Get logged-in provider's availability
+export function getMyAvailability() {
+  return apiClient<ApiResponse<Availability[]>>(
+    "/availability/my-availability",
+    {
+      method: "GET",
+    },
+  );
+}
+
+// Create availability
+export function createMyAvailability(
+  payload: CreateAvailabilityPayload,
+) {
+  return apiClient<ApiResponse<Availability>>("/availability", {
+    method: "POST",
+    body: payload,
+  });
+}
+
+// Update availability
+export function updateMyAvailability(
+  id: string,
+  payload: UpdateAvailabilityPayload,
+) {
+  return apiClient<ApiResponse<Availability>>(`/availability/${id}`, {
+    method: "PATCH",
+    body: payload,
+  });
+}
+
+// Delete availability
+export function deleteMyAvailability(id: string) {
+  return apiClient<ApiResponse<null>>(`/availability/${id}`, {
+    method: "DELETE",
+  });
+}
