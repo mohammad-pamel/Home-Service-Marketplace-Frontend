@@ -50,12 +50,27 @@ export default function ProviderMyEstimatesPage() {
     estimates.map((estimate) => estimate.bookingId),
   );
 
-  const availableBookings = bookings.filter(
-    (booking) =>
-      booking.status !== "CANCELLED" &&
-      booking.status !== "COMPLETED" &&
-      !existingBookingIds.has(booking.id),
+  // const availableBookings = bookings.filter(
+  //   (booking) =>
+  //     booking.status !== "CANCELLED" &&
+  //     booking.status !== "COMPLETED" &&
+  //     !existingBookingIds.has(booking.id),
+  // );
+
+  // const availableBookings = bookings.filter((booking) => {
+  //   const hasEstimate = Boolean(booking.estimate);
+
+  //   return booking.status === "CONFIRMED" && !hasEstimate;
+  // });
+
+  const availableBookings = bookings.filter((booking) => {
+  const hasEstimate = Boolean(booking.estimate);
+
+  return (
+    ["PENDING", "CONFIRMED"].includes(booking.status) &&
+    !hasEstimate
   );
+});
 
   const subtotal = items.reduce(
     (sum, item) => sum + item.quantity * item.unitPrice,
@@ -276,11 +291,17 @@ export default function ProviderMyEstimatesPage() {
           >
             <option value="">Select a booking</option>
 
-            {availableBookings.map((booking) => (
+            {/* {availableBookings.map((booking) => (
               <option key={booking.id} value={booking.id}>
                 {booking.customer?.name ?? "Customer"} —{" "}
                 {booking.serviceRequest?.service?.name ?? "Service"} (
                 {booking.id.slice(0, 8)})
+              </option>
+            ))} */}
+            {availableBookings.map((booking) => (
+              <option key={booking.id} value={booking.id}>
+                {booking.serviceRequest?.service?.name} -{" "}
+                {booking.customer?.name}
               </option>
             ))}
           </select>

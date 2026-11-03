@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { RefreshCw, FileText, CalendarDays, Banknote } from "lucide-react";
 import Link from "next/link";
-import { useGetMyEstimates } from "@/hooks/customer.hook";
+import {
+  useApproveCustomerEstimate,
+  useGetMyEstimates,
+  useRejectCustomerEstimate,
+} from "@/hooks/customer.hook";
 import type { Estimate } from "@/types/estimate.type";
 
 const statusStyles: Record<string, string> = {
@@ -60,6 +64,24 @@ function getAmount(estimate: Estimate) {
 export default function CustomerEstimatesPage() {
   const { data, isLoading, isError, error, refetch, isFetching } =
     useGetMyEstimates();
+  const approveMutation = useApproveCustomerEstimate();
+  const rejectMutation = useRejectCustomerEstimate();
+
+  const handleApprove = (estimateId: string) => {
+    if (!confirm("Are you sure you want to approve this estimate?")) {
+      return;
+    }
+
+    approveMutation.mutate(estimateId);
+  };
+
+  const handleReject = (estimateId: string) => {
+    if (!confirm("Are you sure you want to reject this estimate?")) {
+      return;
+    }
+
+    rejectMutation.mutate(estimateId);
+  };
 
   const [statusFilter, setStatusFilter] = useState("ALL");
 
@@ -246,6 +268,36 @@ export default function CustomerEstimatesPage() {
                     <p className="mt-1 text-sm text-muted-foreground">
                       {item.notes}
                     </p>
+                  </div>
+                )}
+
+                {estimate.status === "SENT" && (
+                  <div className="flex flex-wrap gap-3 border-t pt-4">
+                    <button
+                      type="button"
+                      onClick={() => handleApprove(estimate.id)}
+                      disabled={
+                        approveMutation.isPending || rejectMutation.isPending
+                      }
+                      className="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {approveMutation.isPending
+                        ? "Approving..."
+                        : "Approve Estimate"}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleReject(estimate.id)}
+                      disabled={
+                        approveMutation.isPending || rejectMutation.isPending
+                      }
+                      className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {rejectMutation.isPending
+                        ? "Rejecting..."
+                        : "Reject Estimate"}
+                    </button>
                   </div>
                 )}
               </article>

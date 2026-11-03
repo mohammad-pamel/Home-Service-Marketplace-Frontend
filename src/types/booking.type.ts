@@ -1,3 +1,5 @@
+import { PaymentProvider, PaymentStatus } from "./payment.type";
+
 export type Booking = {
   id: string;
   status: "PENDING" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
@@ -19,9 +21,19 @@ export type Booking = {
       name: string;
     };
   };
+  estimate?: {
+    id: string;
+    status: "DRAFT" | "SENT" | "APPROVED" | "REJECTED" | "EXPIRED";
+    total: number | string;
+  };
+
+  payments?: {
+    id: string;
+    status: PaymentStatus;
+    provider: PaymentProvider;
+    amount: number | string;
+  }[];
 };
-
-
 
 // export type BookingStatus =
 //   | "PENDING"

@@ -1,6 +1,6 @@
 
 import apiClient from "@/lib/apiClient";
-import { CreateServiceRequestPayload } from "@/types";
+import { ApiResponse, CreatePaymentPayload, CreatePaymentResponse, CreateServiceRequestPayload } from "@/types";
 
 // Customer's own service requests
 export function getMyServiceRequests() {
@@ -18,9 +18,34 @@ export function getMyBookings() {
   return apiClient("/bookings/my-bookings");
 }
 
+// Create Customer Booking
+export function createCustomerBooking(payload: {
+  serviceRequestId: string;
+  scheduledAt: string;
+}) {
+  return apiClient("/bookings", {
+    method: "POST",
+    body: payload,
+  });
+}
+
 // Estimates received by the customer
 export function getMyEstimates() {
   return apiClient("/estimates/customer");
+}
+
+// Approve Customer Estimate
+export function approveCustomerEstimate(estimateId: string) {
+  return apiClient(`/estimates/${estimateId}/approve`, {
+    method: "PATCH",
+  });
+}
+
+// Reject Customer Estimate
+export function rejectCustomerEstimate(estimateId: string) {
+  return apiClient(`/estimates/${estimateId}/reject`, {
+    method: "PATCH",
+  });
 }
 
 // Customer's payment history
@@ -28,9 +53,34 @@ export function getMyPayments() {
   return apiClient("/payments/my-payments");
 }
 
+// Create Customer Payment
+export function createCustomerPayment(payload: CreatePaymentPayload) {
+  return apiClient<ApiResponse<CreatePaymentResponse>>("/payments", {
+    method: "POST",
+    body: payload,
+  });
+}
+
 // Reviews submitted by the customer
 export function getMyReviews() {
   return apiClient("/reviews/my-reviews");
+}
+
+// // Reviews submitted by the customer
+// export function getMyReviews() {
+//   return apiClient("/reviews/my-reviews");
+// }
+
+// Create Customer Review
+export function createCustomerReview(payload: {
+  bookingId: string;
+  rating: number;
+  comment?: string;
+}) {
+  return apiClient("/reviews", {
+    method: "POST",
+    body: payload,
+  });
 }
 
 // Logged-in user's profile

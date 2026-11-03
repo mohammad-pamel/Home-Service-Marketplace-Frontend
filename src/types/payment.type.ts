@@ -46,3 +46,25 @@ export type Payment = {
     };
   };
 };
+
+
+// Create Payment Payload
+export type CreatePaymentPayload = {
+  bookingId: string;
+  provider: "BKASH";
+  method: "MOBILE_BANKING";
+};
+
+// Create Payment Response
+export type CreatePaymentResponse = {
+  paymentId: string;
+  bookingId: string;
+  amount: number;
+  currency: string;
+  provider: PaymentProvider;
+  method: PaymentMethod;
+  status: PaymentStatus;
+  bkashPaymentId: string;
+  merchantInvoiceNumber: string;
+  paymentUrl: string;
+};

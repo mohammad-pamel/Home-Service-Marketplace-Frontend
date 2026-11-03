@@ -12,7 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { useGetMyServiceRequests, useCancelMyServiceRequest } from "@/hooks/customer.hook";
+import { useGetMyServiceRequests, useCancelMyServiceRequest, useCreateCustomerBooking } from "@/hooks/customer.hook";
 import type { ServiceRequest, ServiceRequestStatus } from "@/types/service-request.type";
 
 const statusStyles: Record<ServiceRequestStatus, string> = {
@@ -46,6 +46,13 @@ function formatStatus(status: string) {
 export default function MyRequestsPage() {
   const { data, isLoading, isError, refetch, isFetching } =
     useGetMyServiceRequests();
+    const createBookingMutation = useCreateCustomerBooking();
+
+const [bookingRequestId, setBookingRequestId] = useState<string | null>(
+  null,
+);
+
+const [scheduledAt, setScheduledAt] = useState("");
 
   const cancelMutation = useCancelMyServiceRequest();
   const [actionError, setActionError] = useState("");
@@ -73,6 +80,33 @@ export default function MyRequestsPage() {
       );
     }
   }
+
+  async function handleCreateBooking(requestId: string) {
+  if (!scheduledAt) {
+    setActionError("Please select a booking date and time.");
+    return;
+  }
+
+  setActionError("");
+
+  try {
+    await createBookingMutation.mutateAsync({
+      serviceRequestId: requestId,
+      scheduledAt: new Date(scheduledAt).toISOString(),
+    });
+
+    setBookingRequestId(null);
+    setScheduledAt("");
+
+    window.alert("Booking created successfully!");
+  } catch (error) {
+    setActionError(
+      error instanceof Error
+        ? error.message
+        : "Unable to create booking.",
+    );
+  }
+}
 
   return (
     <main className="space-y-6 p-4 md:p-6">
@@ -248,6 +282,72 @@ export default function MyRequestsPage() {
                     </p>
                   </div>
                 )}
+
+                {/* Create Booking */}
+{request.status === "ACCEPTED" && !request.booking && (
+  <div className="mt-4 rounded-lg border border-primary/30 p-4">
+    <h3 className="font-semibold">Your provider has accepted!</h3>
+
+    <p className="mt-1 text-sm text-muted-foreground">
+      Select your preferred booking date and time to confirm the booking.
+    </p>
+
+    {bookingRequestId === request.id ? (
+      <div className="mt-4 space-y-3">
+        <div>
+          <label
+            htmlFor={`booking-date-${request.id}`}
+            className="mb-1 block text-sm font-medium"
+          >
+            Booking Date & Time
+          </label>
+
+          <input
+            id={`booking-date-${request.id}`}
+            type="datetime-local"
+            value={scheduledAt}
+            min={new Date().toISOString().slice(0, 16)}
+            onChange={(e) => setScheduledAt(e.target.value)}
+            className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+            required
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => handleCreateBooking(request.id)}
+            disabled={createBookingMutation.isPending}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+          >
+            {createBookingMutation.isPending
+              ? "Creating..."
+              : "Confirm Booking"}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setBookingRequestId(null);
+              setScheduledAt("");
+            }}
+            className="rounded-lg border px-4 py-2 text-sm"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    ) : (
+      <button
+        type="button"
+        onClick={() => setBookingRequestId(request.id)}
+        className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+      >
+        Create Booking
+      </button>
+    )}
+  </div>
+)}
 
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
                   <p className="text-xs text-muted-foreground">

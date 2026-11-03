@@ -10,59 +10,27 @@ import {
   CreditCard,
 } from "lucide-react";
 
-import { useGetMyBookings } from "@/hooks/customer.hook";
+import { useCreateCustomerPayment, useGetMyBookings } from "@/hooks/customer.hook";
+import { toast } from "@/components/ui/toast";
 import type { Booking } from "@/types/booking.type";
 
-type BookingStatus = Booking["status"];
+const statusOptions = [
+  "ALL",
+  "PENDING",
+  "CONFIRMED",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
 
-const statusStyles: Record<BookingStatus, string> = {
-  PENDING: "bg-yellow-100 text-yellow-800",
-  CONFIRMED: "bg-blue-100 text-blue-800",
-  IN_PROGRESS: "bg-purple-100 text-purple-800",
-  COMPLETED: "bg-green-100 text-green-800",
-  CANCELLED: "bg-red-100 text-red-800",
-};
-
-function formatDate(value?: string | null) {
-  if (!value) return "Not scheduled";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) return value;
-
-  return new Intl.DateTimeFormat("en-GB", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-}
-
-function formatStatus(status: string) {
-  return status.replaceAll("_", " ");
-}
-
-function getAmount(amount: number | string) {
-  const value = Number(amount);
-
-  if (!Number.isFinite(value)) return "—";
-
-  return value.toLocaleString("en-BD", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}
+type StatusFilter = (typeof statusOptions)[number];
 
 export default function MyBookingsPage() {
-  const { data, isLoading, isError, refetch, isFetching } =
-    useGetMyBookings();
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
 
-  const [statusFilter, setStatusFilter] = useState<"ALL" | BookingStatus>(
-    "ALL",
-  );
+  const { data, isLoading, isError, refetch } = useGetMyBookings();
+  const createPaymentMutation = useCreateCustomerPayment();
 
-  // Expected response: { success, data: Booking[], meta }
   const response = data as { data?: Booking[] } | undefined;
   const bookings = response?.data ?? [];
 
@@ -71,184 +39,281 @@ export default function MyBookingsPage() {
       ? bookings
       : bookings.filter((booking) => booking.status === statusFilter);
 
-  const activeCount = bookings.filter((booking) =>
-    ["PENDING", "CONFIRMED", "IN_PROGRESS"].includes(booking.status),
-  ).length;
+  const handlePayment = (bookingId: string) => {
+    createPaymentMutation.mutate(
+      {
+        bookingId,
+        provider: "BKASH",
+        method: "MOBILE_BANKING",
+      },
+      {
+        onSuccess: (response) => {
+          const paymentUrl = response.data?.paymentUrl;
 
-  const completedCount = bookings.filter(
-    (booking) => booking.status === "COMPLETED",
-  ).length;
+          if (!paymentUrl) {
+            toast.add({
+              title: "Payment Error",
+              description: "bKash payment URL was not returned.",
+              type: "error",
+            });
+            return;
+          }
 
-  const cancelledCount = bookings.filter(
-    (booking) => booking.status === "CANCELLED",
-  ).length;
+          window.location.href = paymentUrl;
+        },
+        onError: (error: unknown) => {
+          const paymentError = error as {
+            data?: { message?: string };
+            message?: string;
+          };
+
+          toast.add({
+            title: "Payment Failed",
+            description:
+              paymentError.data?.message ??
+              paymentError.message ??
+              "Unable to start payment.",
+            type: "error",
+          });
+        },
+      }
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[300px] items-center justify-center">
+        <RefreshCw className="animate-spin" />
+        <span className="ml-2">Loading bookings...</span>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded-xl border p-6 text-center">
+        <p className="text-red-500">Failed to load your bookings.</p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-4 rounded-lg bg-primary px-4 py-2 text-primary-foreground"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <main className="space-y-6 p-4 md:p-6">
-      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-primary">
-            Customer Dashboard
-          </p>
-          <h1 className="mt-1 text-2xl font-bold md:text-3xl">
-            My Bookings
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            View your scheduled services and booking history.
+          <h1 className="text-2xl font-bold">My Bookings</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage your service bookings and payments.
           </p>
         </div>
 
         <button
           type="button"
           onClick={() => refetch()}
-          disabled={isFetching}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
+          className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm"
         >
-          <RefreshCw
-            className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
-          />
+          <RefreshCw size={16} />
           Refresh
         </button>
-      </section>
+      </div>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           title="Total Bookings"
-          value={isLoading ? "..." : bookings.length}
-          icon={<CalendarCheck className="h-5 w-5" />}
+          value={bookings.length}
+          icon={<CalendarDays size={20} />}
         />
         <SummaryCard
-          title="Active Bookings"
-          value={isLoading ? "..." : activeCount}
-          icon={<CalendarDays className="h-5 w-5" />}
+          title="Pending"
+          value={bookings.filter((b) => b.status === "PENDING").length}
+          icon={<RefreshCw size={20} />}
+        />
+        <SummaryCard
+          title="Confirmed"
+          value={bookings.filter((b) => b.status === "CONFIRMED").length}
+          icon={<CalendarCheck size={20} />}
         />
         <SummaryCard
           title="Completed"
-          value={isLoading ? "..." : completedCount}
-          icon={<CreditCard className="h-5 w-5" />}
+          value={bookings.filter((b) => b.status === "COMPLETED").length}
+          icon={<CreditCard size={20} />}
         />
-        <SummaryCard
-          title="Cancelled"
-          value={isLoading ? "..." : cancelledCount}
-          icon={<CalendarCheck className="h-5 w-5" />}
-        />
-      </section>
+      </div>
 
-      <section className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">Booking History</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Filter bookings by their current status.
-          </p>
-        </div>
-
-        <select
-          value={statusFilter}
-          onChange={(event) =>
-            setStatusFilter(event.target.value as "ALL" | BookingStatus)
-          }
-          className="h-10 rounded-lg border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-primary"
-          aria-label="Filter bookings by status"
-        >
-          <option value="ALL">All Bookings</option>
-          <option value="PENDING">Pending</option>
-          <option value="CONFIRMED">Confirmed</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="COMPLETED">Completed</option>
-          <option value="CANCELLED">Cancelled</option>
-        </select>
-      </section>
-
-      {isLoading ? (
-        <div className="rounded-xl border p-10 text-center text-muted-foreground">
-          Loading your bookings...
-        </div>
-      ) : isError ? (
-        <div className="space-y-3 rounded-xl border p-8 text-center">
-          <p className="text-sm text-red-500">
-            Failed to load your bookings.
-          </p>
+      {/* Status Filter */}
+      <div className="flex flex-wrap gap-2">
+        {statusOptions.map((status) => (
           <button
+            key={status}
             type="button"
-            onClick={() => refetch()}
-            className="rounded-lg border px-4 py-2 text-sm hover:bg-muted"
+            onClick={() => setStatusFilter(status)}
+            className={`rounded-lg border px-4 py-2 text-sm transition ${
+              statusFilter === status
+                ? "border-primary bg-primary text-primary-foreground"
+                : "hover:bg-muted"
+            }`}
           >
-            Try Again
+            {status === "ALL" ? "All" : status.replace("_", " ")}
           </button>
-        </div>
-      ) : filteredBookings.length === 0 ? (
-        <div className="rounded-xl border px-5 py-12 text-center">
-          <CalendarCheck className="mx-auto h-10 w-10 text-muted-foreground" />
-          <h2 className="mt-4 text-lg font-semibold">
-            {bookings.length === 0
-              ? "No bookings yet"
-              : "No bookings match this filter"}
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {bookings.length === 0
-              ? "Your confirmed service bookings will appear here."
-              : "Choose another status to see more bookings."}
+        ))}
+      </div>
+
+      {/* Booking List */}
+      {filteredBookings.length === 0 ? (
+        <div className="rounded-xl border p-10 text-center">
+          <CalendarDays className="mx-auto mb-3 text-muted-foreground" size={36} />
+          <h2 className="font-semibold">No bookings found</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            You do not have any bookings in this category.
           </p>
         </div>
       ) : (
-        <section className="space-y-4">
-          {filteredBookings.map((booking) => (
-            <article
-              key={booking.id}
-              className="rounded-xl border bg-card p-5"
-            >
-              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    {booking.serviceRequest?.service?.name ??
-                      "Home Service Booking"}
-                  </h3>
-                  <p className="mt-1 break-all text-xs text-muted-foreground">
-                    Booking ID: {booking.id}
-                  </p>
+        <div className="grid gap-4">
+          {filteredBookings.map((booking) => {
+            const hasPendingPayment = booking.payments?.some(
+              (payment) =>
+                payment.provider === "BKASH" &&
+                payment.status === "PENDING"
+            );
+
+            const hasSuccessfulPayment = booking.payments?.some(
+              (payment) => payment.status === "SUCCESS"
+            );
+
+            const canPay =
+              booking.estimate?.status === "APPROVED" &&
+              !hasPendingPayment &&
+              !hasSuccessfulPayment &&
+              booking.status !== "CANCELLED" &&
+              booking.status !== "COMPLETED";
+
+            const serviceName =
+              booking.serviceRequest?.service?.name ?? "Service";
+
+            const providerName =
+              booking.provider?.name ?? "Not assigned";
+
+            return (
+              <div
+                key={booking.id}
+                className="rounded-xl border bg-card p-5 shadow-sm"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold">{serviceName}</h2>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Booking ID: {booking.id}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      booking.status === "COMPLETED"
+                        ? "bg-green-100 text-green-700"
+                        : booking.status === "CANCELLED"
+                          ? "bg-red-100 text-red-700"
+                          : booking.status === "CONFIRMED"
+                            ? "bg-blue-100 text-blue-700"
+                            : "bg-amber-100 text-amber-700"
+                    }`}
+                  >
+                    {booking.status.replace("_", " ")}
+                  </span>
                 </div>
 
-                <span
-                  className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[booking.status]}`}
-                >
-                  {formatStatus(booking.status)}
-                </span>
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <div className="flex items-center gap-3">
+                    <UserRound size={18} className="text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Provider</p>
+                      <p className="text-sm font-medium">{providerName}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <CalendarDays size={18} className="text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Booking Date</p>
+                      <p className="text-sm font-medium">
+                        {booking.createdAt
+                          ? new Date(booking.createdAt).toLocaleDateString()
+                          : "Not available"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <CreditCard size={18} className="text-muted-foreground" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">
+                        Estimate Amount
+                      </p>
+                      <p className="text-sm font-medium">
+                        ৳{booking.estimate?.total ?? booking.totalAmount ?? "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-muted-foreground">
+                      Estimate Status
+                    </p>
+                    <p className="text-sm font-medium">
+                      {booking.estimate?.status ?? "Not available"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Payment Section */}
+                <div className="mt-5 border-t pt-4">
+                  {canPay && (
+                    <button
+                      type="button"
+                      onClick={() => handlePayment(booking.id)}
+                      disabled={createPaymentMutation.isPending}
+                      className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      {createPaymentMutation.isPending
+                        ? "Redirecting..."
+                        : "Pay Now with bKash"}
+                    </button>
+                  )}
+
+                  {hasSuccessfulPayment && (
+                    <p className="text-sm font-medium text-green-600">
+                      Payment completed successfully.
+                    </p>
+                  )}
+
+                  {hasPendingPayment && (
+                    <p className="text-sm text-amber-600">
+                      Payment is pending. Please complete your bKash checkout.
+                    </p>
+                  )}
+
+                  {!canPay &&
+                    !hasPendingPayment &&
+                    !hasSuccessfulPayment &&
+                    booking.estimate?.status !== "APPROVED" && (
+                      <p className="text-sm text-muted-foreground">
+                        Payment will be available after your estimate is approved.
+                      </p>
+                    )}
+                </div>
               </div>
-
-              <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <Detail
-                  icon={<CalendarDays className="h-4 w-4" />}
-                  label="Scheduled Date"
-                  value={formatDate(booking.scheduledAt)}
-                />
-
-                <Detail
-                  icon={<UserRound className="h-4 w-4" />}
-                  label="Service Provider"
-                  value={booking.provider?.name ?? "Not assigned"}
-                />
-
-                <Detail
-                  icon={<CreditCard className="h-4 w-4" />}
-                  label="Total Amount"
-                  value={`৳${getAmount(booking.totalAmount)}`}
-                />
-              </div>
-
-              {booking.provider?.email && (
-                <p className="mt-4 break-all text-sm text-muted-foreground">
-                  Provider email: {booking.provider.email}
-                </p>
-              )}
-
-              <div className="mt-5 border-t pt-4 text-xs text-muted-foreground">
-                Booking created: {formatDate(booking.createdAt)}
-              </div>
-            </article>
-          ))}
-        </section>
+            );
+          })}
+        </div>
       )}
-    </main>
+    </div>
   );
 }
 
@@ -258,38 +323,16 @@ function SummaryCard({
   icon,
 }: {
   title: string;
-  value: string | number;
+  value: number;
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border bg-card p-5">
-      <div className="flex items-center justify-between gap-3">
+    <div className="rounded-xl border bg-card p-5 shadow-sm">
+      <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">{title}</p>
-        <div className="rounded-lg bg-primary/10 p-2 text-primary">
-          {icon}
-        </div>
+        <span className="text-muted-foreground">{icon}</span>
       </div>
       <p className="mt-3 text-2xl font-bold">{value}</p>
-    </div>
-  );
-}
-
-function Detail({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="mt-0.5 text-muted-foreground">{icon}</div>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="mt-1 break-words text-sm font-medium">{value}</p>
-      </div>
     </div>
   );
 }

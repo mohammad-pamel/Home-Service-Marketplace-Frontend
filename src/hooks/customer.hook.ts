@@ -11,6 +11,11 @@ import {
   updateMyProfile,
   cancelMyServiceRequest,
   createServiceRequest,
+  createCustomerPayment,
+  createCustomerBooking,
+  rejectCustomerEstimate,
+  approveCustomerEstimate,
+  createCustomerReview,
 } from "@/api/customer.api";
 
 export function useGetMyServiceRequests() {
@@ -42,11 +47,63 @@ export function useGetMyBookings() {
   });
 }
 
+// Create Customer Booking
+export function useCreateCustomerBooking() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createCustomerBooking,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["customer-bookings"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["customer-service-requests"],
+        }),
+      ]);
+    },
+  });
+}
+
 export function useGetMyEstimates() {
   return useQuery({
     queryKey: ["customer-estimates"],
     queryFn: getMyEstimates,
     retry: false,
+  });
+}
+
+// Approve Estimate
+export function useApproveCustomerEstimate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: approveCustomerEstimate,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["customer-estimates"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["customer-bookings"],
+        }),
+      ]);
+    },
+  });
+}
+
+// Reject Estimate
+export function useRejectCustomerEstimate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: rejectCustomerEstimate,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["customer-estimates"],
+      });
+    },
   });
 }
 
@@ -58,11 +115,37 @@ export function useGetMyPayments() {
   });
 }
 
+// Create Customer Payment
+export function useCreateCustomerPayment() {
+  return useMutation({
+    mutationFn: createCustomerPayment,
+  });
+}
+
 export function useGetMyReviews() {
   return useQuery({
     queryKey: ["customer-reviews"],
     queryFn: getMyReviews,
     retry: false,
+  });
+}
+
+// Create Customer Review
+export function useCreateCustomerReview() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createCustomerReview,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["customer-reviews"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["customer-bookings"],
+        }),
+      ]);
+    },
   });
 }
 
@@ -89,7 +172,6 @@ export function useUpdateMyProfile() {
 
 
 // Service Request
-
 
 export function useCreateServiceRequest() {
   const queryClient = useQueryClient();
