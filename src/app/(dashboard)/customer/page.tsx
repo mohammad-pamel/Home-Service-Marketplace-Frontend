@@ -11,11 +11,35 @@ import {
 } from "lucide-react";
 
 import {
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Tooltip,
+  Legend,
+} from "recharts";
+
+import {
   useGetMyServiceRequests,
   useGetMyBookings,
   useGetMyEstimates,
   useGetMyPayments,
 } from "@/hooks/customer.hook";
+
+const CHART_COLORS = [
+  "#3B82F6",
+  "#10B981",
+  "#F59E0B",
+  "#EF4444",
+  "#8B5CF6",
+  "#06B6D4",
+  "#F97316",
+];
+
+type StatusItem = {
+  name: string;
+  value: number;
+};
 
 function getArray<T>(response: unknown): T[] {
   if (!response || typeof response !== "object") return [];
@@ -27,6 +51,23 @@ function getArray<T>(response: unknown): T[] {
   if (Array.isArray(result.data)) return result.data as T[];
 
   return [];
+}
+
+function buildStatusData(
+  items: { status?: string }[],
+): StatusItem[] {
+  const statusCounts: Record<string, number> = {};
+
+  items.forEach((item) => {
+    const status = item.status?.trim() || "Unknown";
+
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+  });
+
+  return Object.entries(statusCounts).map(([name, value]) => ({
+    name: name.replace(/_/g, " "),
+    value,
+  }));
 }
 
 function SummaryCard({
@@ -76,24 +117,116 @@ function SummaryCard({
   );
 }
 
+function StatusPieChart({
+  title,
+  description,
+  data,
+  loading,
+}: {
+  title: string;
+  description: string;
+  data: StatusItem[];
+  loading: boolean;
+}) {
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+
+  return (
+    <div className="rounded-xl border p-5">
+      <div className="mb-4">
+        <h3 className="font-semibold">{title}</h3>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {description}
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="flex h-[260px] items-center justify-center">
+          <p className="text-sm text-muted-foreground">
+            Loading chart...
+          </p>
+        </div>
+      ) : total === 0 ? (
+        <div className="flex h-[260px] flex-col items-center justify-center gap-2 text-center">
+          <p className="text-sm font-medium text-muted-foreground">
+            No data available
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Data will appear here when you have records.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="h-[260px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={data}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="45%"
+                  outerRadius={85}
+                  innerRadius={48}
+                  paddingAngle={3}
+                >
+                  {data.map((entry, index) => (
+                    <Cell
+                      key={`${entry.name}-${index}`}
+                      fill={CHART_COLORS[index % CHART_COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+
+                <Tooltip
+                  formatter={(value) => [value, "Count"]}
+                />
+
+                <Legend
+                  verticalAlign="bottom"
+                  height={45}
+                  iconType="circle"
+                  wrapperStyle={{ fontSize: "12px" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="mt-2 border-t pt-3 text-center">
+            <p className="text-xs text-muted-foreground">
+              Total Records
+            </p>
+            <p className="text-2xl font-bold">{total}</p>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function CustomerDashboardPage() {
   const requestsQuery = useGetMyServiceRequests();
   const bookingsQuery = useGetMyBookings();
   const estimatesQuery = useGetMyEstimates();
   const paymentsQuery = useGetMyPayments();
 
-  const requests = getArray<{ id: string }>(requestsQuery.data);
+  const requests = getArray<{
+    id: string;
+    status?: string;
+  }>(requestsQuery.data);
+
   const bookings = getArray<{
     id: string;
-    status: string;
+    status?: string;
   }>(bookingsQuery.data);
+
   const estimates = getArray<{
     id: string;
-    status: string;
+    status?: string;
   }>(estimatesQuery.data);
+
   const payments = getArray<{
     id: string;
-    status: string;
+    status?: string;
   }>(paymentsQuery.data);
 
   const loading =
@@ -108,6 +241,11 @@ export default function CustomerDashboardPage() {
     estimatesQuery.isError ||
     paymentsQuery.isError;
 
+  const requestStatusData = buildStatusData(requests);
+  const bookingStatusData = buildStatusData(bookings);
+  const estimateStatusData = buildStatusData(estimates);
+  const paymentStatusData = buildStatusData(payments);
+
   async function refreshDashboard() {
     await Promise.all([
       requestsQuery.refetch(),
@@ -119,6 +257,7 @@ export default function CustomerDashboardPage() {
 
   return (
     <div className="space-y-8 p-4 md:p-6">
+      {/* Dashboard Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
@@ -135,11 +274,15 @@ export default function CustomerDashboardPage() {
           disabled={loading}
           className="inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
         >
-          <RefreshCw size={16} />
+          <RefreshCw
+            size={16}
+            className={loading ? "animate-spin" : ""}
+          />
           Refresh
         </button>
       </div>
 
+      {/* Error Message */}
       {hasError && (
         <div className="rounded-lg border border-red-200 p-4 text-sm text-red-600">
           Some dashboard information could not be loaded. Check the relevant
@@ -147,6 +290,7 @@ export default function CustomerDashboardPage() {
         </div>
       )}
 
+      {/* Summary Cards */}
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <SummaryCard
           title="My Requests"
@@ -185,6 +329,49 @@ export default function CustomerDashboardPage() {
         />
       </section>
 
+      {/* Analytics Charts */}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold">
+            My Activity Analytics
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Overview of your requests, bookings, estimates, and payments.
+          </p>
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <StatusPieChart
+            title="Service Request Status"
+            description="Your service request distribution"
+            data={requestStatusData}
+            loading={requestsQuery.isLoading}
+          />
+
+          <StatusPieChart
+            title="Booking Status"
+            description="Your booking distribution"
+            data={bookingStatusData}
+            loading={bookingsQuery.isLoading}
+          />
+
+          <StatusPieChart
+            title="Estimate Status"
+            description="Your estimate distribution"
+            data={estimateStatusData}
+            loading={estimatesQuery.isLoading}
+          />
+
+          <StatusPieChart
+            title="Payment Status"
+            description="Your payment record distribution"
+            data={paymentStatusData}
+            loading={paymentsQuery.isLoading}
+          />
+        </div>
+      </section>
+
+      {/* Quick Actions */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold">Quick Actions</h2>
 

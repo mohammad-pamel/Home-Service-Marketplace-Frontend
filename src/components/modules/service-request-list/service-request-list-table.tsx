@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Search, X } from "lucide-react";
 
 const statusOptions: (ServiceRequestStatus | "ALL")[] = [
   "ALL",
@@ -79,35 +80,78 @@ export default function ServiceRequestListTable() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 items-center sm:flex-row">
-        <Input
-          placeholder="Search customer, service, or title..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="sm:max-w-sm"
-        />
+  {/* Search and Filters */}
+<div className="space-y-4 rounded-xl border p-4">
+  <div className="flex flex-col gap-3 md:flex-row md:items-center">
+    {/* Search */}
+    <div className="relative w-full flex-1">
+      <Search
+        size={18}
+        className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+      />
 
-        <select
-          value={statusFilter}
-          onChange={(event) =>
-            setStatusFilter(
-              event.target.value as ServiceRequestStatus | "ALL",
-            )
-          }
-          className="h-8 rounded-md border bg-background text-sm"
-          aria-label="Filter by service request status"
-        >
-          {statusOptions.map((status) => (
-            <option key={status} value={status}>
-              {status === "ALL" ? "All Statuses" : status.replaceAll("_", " ")}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Input
+        placeholder="Search by customer, service, title or location..."
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        className="h-11 w-full pl-10"
+      />
+    </div>
 
-      <div className="text-sm text-muted-foreground">
-        Total requests: {filteredRequests.length}
-      </div>
+    {/* Status Filter */}
+    <select
+      value={statusFilter}
+      onChange={(event) =>
+        setStatusFilter(
+          event.target.value as ServiceRequestStatus | "ALL",
+        )
+      }
+      className="h-11 w-full rounded-md border bg-background px-3 text-sm outline-none transition focus:border-primary md:w-[220px]"
+      aria-label="Filter by service request status"
+    >
+      {statusOptions.map((status) => (
+        <option key={status} value={status}>
+          {status === "ALL"
+            ? "All Statuses"
+            : status.replaceAll("_", " ")}
+        </option>
+      ))}
+    </select>
+
+    {/* Reset Button */}
+    {/* <Button
+      type="button"
+      variant="outline"
+      className="h-11 w-full md:w-auto"
+      onClick={() => {
+        setSearch("");
+        setStatusFilter("ALL");
+      }}
+    >
+      <X size={16} />
+      Reset
+    </Button> */}
+  </div>
+
+  {/* Result Count */}
+  <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+    <p className="text-sm text-muted-foreground">
+      Showing{" "}
+      <span className="font-semibold text-foreground">
+        {filteredRequests.length}
+      </span>{" "}
+      of{" "}
+      <span className="font-semibold text-foreground">
+        {requests.length}
+      </span>{" "}
+      service requests
+    </p>
+
+    <p className="text-xs text-muted-foreground">
+      Search and filter service requests
+    </p>
+  </div>
+</div>
 
       <div className="w-full overflow-x-auto rounded-md border">
         <Table>

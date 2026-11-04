@@ -26,6 +26,21 @@ import {
   AlertCircle,
 } from "lucide-react";
 
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+} from "recharts";
+
 import Link from "next/link";
 
 function getArray(data: unknown): Record<string, unknown>[] {
@@ -254,6 +269,69 @@ export default function AdminOverviewPage() {
     )
     .slice(0, 5);
 
+    // Last 6 months analytics
+const monthlyAnalytics = Array.from({ length: 6 }, (_, index) => {
+  const date = new Date();
+
+  date.setDate(1);
+  date.setHours(0, 0, 0, 0);
+  date.setMonth(date.getMonth() - (5 - index));
+
+  return {
+    key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
+    month: date.toLocaleDateString("en-US", { month: "short" }),
+    revenue: 0,
+    bookings: 0,
+  };
+});
+
+// Monthly booking counts
+bookings.forEach((booking) => {
+  const date = new Date(String(booking.createdAt ?? ""));
+
+  if (Number.isNaN(date.getTime())) return;
+
+  const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+  const monthData = monthlyAnalytics.find((item) => item.key === key);
+
+  if (monthData) {
+    monthData.bookings += 1;
+  }
+});
+
+// Monthly successful payment revenue
+payments.forEach((payment) => {
+  if (!["SUCCESS", "PAID", "COMPLETED"].includes(getStatus(payment))) {
+    return;
+  }
+
+  const date = new Date(String(payment.createdAt ?? ""));
+
+  if (Number.isNaN(date.getTime())) return;
+
+  const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+  const monthData = monthlyAnalytics.find((item) => item.key === key);
+
+  if (monthData) {
+    const amount = Number(payment.amount ?? 0);
+
+    if (Number.isFinite(amount)) {
+      monthData.revenue += amount;
+    }
+  }
+});
+
+// Booking status distribution
+const bookingStatusData = [
+  { name: "Pending", value: pendingBookings, color: "#EAB308" },
+  { name: "Confirmed", value: confirmedBookings, color: "#3B82F6" },
+  { name: "In Progress", value: inProgressBookings, color: "#6366F1" },
+  { name: "Completed", value: completedBookings, color: "#22C55E" },
+  { name: "Cancelled", value: cancelledBookings, color: "#EF4444" },
+].filter((item) => item.value > 0);
+
   if (isLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
@@ -428,6 +506,125 @@ export default function AdminOverviewPage() {
           </div>
         </div>
       </section>
+
+      {/* Analytics Dashboard */}
+<section className="space-y-5">
+  <div>
+    <h2 className="text-xl font-bold tracking-tight">
+      Platform Analytics
+    </h2>
+    <p className="mt-1 text-sm text-muted-foreground">
+      Monitor revenue, booking trends and platform performance.
+    </p>
+  </div>
+
+  {/* Revenue Chart */}
+  <div className="rounded-xl border bg-card p-5">
+    <div className="mb-5">
+      <h3 className="font-semibold">Monthly Revenue Trend</h3>
+      <p className="text-xs text-muted-foreground">
+        Successful payment revenue over the last 6 months
+      </p>
+    </div>
+
+    <div className="h-[300px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart data={monthlyAnalytics}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="month" />
+          <YAxis />
+          <Tooltip
+            formatter={(value) => [
+              formatAmount(value),
+              "Revenue",
+            ]}
+          />
+          <Line
+            type="monotone"
+            dataKey="revenue"
+            name="Revenue"
+            stroke="#16A34A"
+            strokeWidth={3}
+            dot={{ r: 4 }}
+            activeDot={{ r: 7 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+
+  {/* Booking Trend + Status Chart */}
+  <div className="grid gap-6 xl:grid-cols-2">
+    <div className="rounded-xl border bg-card p-5">
+      <div className="mb-5">
+        <h3 className="font-semibold">Monthly Booking Trend</h3>
+        <p className="text-xs text-muted-foreground">
+          Number of bookings created each month
+        </p>
+      </div>
+
+      <div className="h-[280px] w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={monthlyAnalytics}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="month" />
+            <YAxis allowDecimals={false} />
+            <Tooltip />
+            <Bar
+              dataKey="bookings"
+              name="Bookings"
+              fill="#6366F1"
+              radius={[6, 6, 0, 0]}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+
+    <div className="rounded-xl border bg-card p-5">
+      <div className="mb-5">
+        <h3 className="font-semibold">Booking Status Distribution</h3>
+        <p className="text-xs text-muted-foreground">
+          Breakdown of all booking statuses
+        </p>
+      </div>
+
+      {bookingStatusData.length === 0 ? (
+        <div className="flex h-[280px] items-center justify-center text-sm text-muted-foreground">
+          No booking analytics available yet.
+        </div>
+      ) : (
+        <div className="h-[280px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={bookingStatusData}
+                dataKey="value"
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                outerRadius={90}
+                innerRadius={55}
+                paddingAngle={3}
+                label={({ name, percent }) =>
+                  `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
+                }
+              >
+                {bookingStatusData.map((entry) => (
+                  <Cell
+                    key={entry.name}
+                    fill={entry.color}
+                  />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
 
       <section className="grid gap-6 xl:grid-cols-2">
         <div className="overflow-hidden rounded-xl border bg-card">

@@ -3,9 +3,8 @@ import React from 'react'
 
 export default function AllCategoriesPage() {
   return (
-    <div>
-          All Category Page
-          <CategoryListTable></CategoryListTable>
-          </div>
+    <div className="p-6">
+      <CategoryListTable></CategoryListTable>
+    </div>
   )
 }

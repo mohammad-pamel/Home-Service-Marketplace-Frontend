@@ -3,8 +3,7 @@ import React from 'react'
 
 export default function AllUsersPage() {
   return (
-    <div>
-      All Users Page
+    <div className="p-6">
       <UserListTable></UserListTable>
       </div>
   )
