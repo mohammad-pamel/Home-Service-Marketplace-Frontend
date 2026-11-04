@@ -357,6 +357,9 @@ export default function ServicesPage() {
                           View Details
                           <ArrowRight size={16} />
                         </Link>
+                        {/* <Link href={`/services/${service.id}`}>
+  View Details
+</Link> */}
                       </div>
                     </article>
                   ))}
