@@ -22,6 +22,7 @@ import { useState } from "react";
 import { Eye, EyeClosed } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getMe } from "@/api";
+import DemoLoginButtons from "./demo-login-buttons";
 
 export default function LoginForm() {
   const queryClient = useQueryClient();
@@ -229,7 +230,13 @@ export default function LoginForm() {
         </FieldGroup>
       </form>
 
-      <FieldSeparator>Or continue with</FieldSeparator>
+      <DemoLoginButtons />
+
+<FieldSeparator>Or continue with</FieldSeparator>
+
+<GoogleLoginComponent />
+
+      {/* <FieldSeparator>Or continue with</FieldSeparator> */}
 
       <GoogleLoginComponent />
 

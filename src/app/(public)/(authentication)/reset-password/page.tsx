@@ -1,6 +1,7 @@
 
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
@@ -12,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Field,
-  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
@@ -31,7 +31,7 @@ const ResetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const resetPasswordMutation = useResetPassword();
@@ -49,7 +49,9 @@ export default function ResetPasswordPage() {
       if (!result.success) {
         toast.add({
           title: "Invalid Information",
-          description: result.error.issues[0]?.message ?? "Please check your inputs.",
+          description:
+            result.error.issues[0]?.message ??
+            "Please check your inputs.",
           type: "error",
         });
         return;
@@ -72,7 +74,8 @@ export default function ResetPasswordPage() {
           onError: (error) => {
             toast.add({
               title: "Password Reset Failed",
-              description: error.message || "Something went wrong. Please try again.",
+              description:
+                error.message || "Something went wrong. Please try again.",
               type: "error",
             });
           },
@@ -102,16 +105,20 @@ export default function ResetPasswordPage() {
           <FieldGroup>
             <form.Field
               name="email"
-              // biome-ignore lint/correctness/noChildrenProp: <explanation>
+              // biome-ignore lint/correctness/noChildrenProp: TanStack Form render prop
               children={(field) => (
                 <Field>
-                  <FieldLabel htmlFor={field.name}>Email Address</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>
+                    Email Address
+                  </FieldLabel>
                   <Input
                     id={field.name}
                     type="email"
                     placeholder="Enter your email"
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
                   />
                 </Field>
               )}
@@ -119,7 +126,7 @@ export default function ResetPasswordPage() {
 
             <form.Field
               name="otp"
-              // biome-ignore lint/correctness/noChildrenProp: <explanation>
+              // biome-ignore lint/correctness/noChildrenProp: TanStack Form render prop
               children={(field) => (
                 <Field>
                   <FieldLabel htmlFor={field.name}>6-Digit OTP</FieldLabel>
@@ -130,7 +137,9 @@ export default function ResetPasswordPage() {
                     placeholder="Enter OTP"
                     value={field.state.value}
                     onChange={(event) =>
-                      field.handleChange(event.target.value.replace(/\D/g, ""))
+                      field.handleChange(
+                        event.target.value.replace(/\D/g, ""),
+                      )
                     }
                   />
                 </Field>
@@ -139,16 +148,20 @@ export default function ResetPasswordPage() {
 
             <form.Field
               name="newPassword"
-              // biome-ignore lint/correctness/noChildrenProp: <explanation>
+              // biome-ignore lint/correctness/noChildrenProp: TanStack Form render prop
               children={(field) => (
                 <Field>
-                  <FieldLabel htmlFor={field.name}>New Password</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>
+                    New Password
+                  </FieldLabel>
                   <Input
                     id={field.name}
                     type="password"
                     placeholder="Enter new password"
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
                   />
                 </Field>
               )}
@@ -156,7 +169,7 @@ export default function ResetPasswordPage() {
 
             <form.Field
               name="confirmPassword"
-              // biome-ignore lint/correctness/noChildrenProp: <explanation>
+              // biome-ignore lint/correctness/noChildrenProp: TanStack Form render prop
               children={(field) => (
                 <Field>
                   <FieldLabel htmlFor={field.name}>
@@ -167,7 +180,9 @@ export default function ResetPasswordPage() {
                     type="password"
                     placeholder="Confirm new password"
                     value={field.state.value}
-                    onChange={(event) => field.handleChange(event.target.value)}
+                    onChange={(event) =>
+                      field.handleChange(event.target.value)
+                    }
                   />
                 </Field>
               )}
@@ -196,5 +211,21 @@ export default function ResetPasswordPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-sm text-muted-foreground">
+            Loading reset password page...
+          </p>
+        </div>
+      }
+    >
+      <ResetPasswordContent />
+    </Suspense>
   );
 }
