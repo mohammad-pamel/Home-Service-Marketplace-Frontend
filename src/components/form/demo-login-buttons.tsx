@@ -4,7 +4,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ShieldCheck, UserRound, BriefcaseBusiness } from "lucide-react";
+import {
+  ShieldCheck,
+  UserRound,
+  BriefcaseBusiness,
+} from "lucide-react";
 
 import { userLogin, getMe } from "@/api/auth.api";
 import { Button } from "@/components/ui/button";
@@ -50,9 +54,9 @@ export default function DemoLoginButtons() {
     mutationFn: userLogin,
   });
 
-  const handleDemoLogin = async (
+  async function handleDemoLogin(
     account: (typeof demoAccounts)[number],
-  ) => {
+  ) {
     if (!account.email || !account.password) {
       toast.add({
         title: "Demo Account Not Configured",
@@ -65,28 +69,35 @@ export default function DemoLoginButtons() {
     try {
       setActiveRole(account.role);
 
+      // Login with demo credentials
       await loginMutation.mutateAsync({
         email: account.email,
         password: account.password,
       });
 
-      const response = await getMe();
-
-      const result = response as {
+      // Fetch authenticated user
+      const response = (await getMe()) as {
         data?: { role?: string };
         role?: string;
       };
 
-      const role = result?.data?.role ?? result?.role;
-      const dashboard = role ? roleRoutes[role] : undefined;
+      const role = response?.data?.role ?? response?.role;
 
-      if (!dashboard) {
-        throw new Error("Unable to verify demo account role.");
+      // Verify expected role
+      if (role !== account.role) {
+        throw new Error(
+          `This account does not have the expected ${account.role} role.`,
+        );
       }
 
-      await queryClient.invalidateQueries({
-        queryKey: ["user"],
-      });
+      const dashboard = roleRoutes[role];
+
+      if (!dashboard) {
+        throw new Error("Dashboard route not found for this account.");
+      }
+
+      // Update authenticated user cache
+      queryClient.setQueryData(["user"], response);
 
       toast.add({
         title: "Demo Login Successful",
@@ -95,10 +106,10 @@ export default function DemoLoginButtons() {
       });
 
       router.replace(dashboard);
-    } catch (error) {
+    } catch (err) {
       const message =
-        error instanceof Error
-          ? error.message
+        err instanceof Error
+          ? err.message
           : "Unable to login with demo account.";
 
       toast.add({
@@ -109,7 +120,7 @@ export default function DemoLoginButtons() {
     } finally {
       setActiveRole(null);
     }
-  };
+  }
 
   return (
     <div className="space-y-3">
@@ -138,7 +149,7 @@ export default function DemoLoginButtons() {
               <span>
                 {activeRole === account.role
                   ? "Logging in..."
-                  : `${account.label} Demo Login`}
+                  : `${account.label}`}
               </span>
             </Button>
           );

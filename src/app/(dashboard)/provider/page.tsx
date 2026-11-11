@@ -18,6 +18,17 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import {
+  CalendarCheck,
+  ClipboardList,
+  BriefcaseBusiness,
+  Wallet,
+} from "lucide-react";
+
+import { Skeleton } from "@/components/ui/skeleton";
+import SummaryCard from "@/components/shared/summary-card";
+import ChartSkeleton from "@/components/shared/chart-skeleton";
+
 
 const CHART_COLORS = [
   "#3B82F6",
@@ -131,6 +142,114 @@ function StatusPieChart({
   );
 }
 
+
+function ProviderDashboardSkeleton() {
+  return (
+    <main className="space-y-6 p-4 sm:p-6">
+      {/* Welcome Header */}
+      <div className="space-y-3">
+        <Skeleton className="h-8 w-64 max-w-full" />
+        <Skeleton className="h-4 w-80 max-w-full" />
+      </div>
+
+      {/* Provider Profile */}
+      <div className="space-y-4 rounded-xl border bg-card p-5">
+        <Skeleton className="h-5 w-40" />
+
+        <div className="flex flex-wrap gap-4">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard
+          title="Total Bookings"
+          value="0"
+          icon={CalendarCheck}
+          description="Your total bookings"
+          isLoading
+        />
+
+        <SummaryCard
+          title="Pending Assignments"
+          value="0"
+          icon={ClipboardList}
+          description="Awaiting your response"
+          isLoading
+        />
+
+        <SummaryCard
+          title="Active Work Logs"
+          value="0"
+          icon={BriefcaseBusiness}
+          description="Currently ongoing"
+          isLoading
+        />
+
+        <SummaryCard
+          title="Total Earnings"
+          value="৳0"
+          icon={Wallet}
+          description="From successful payments"
+          isLoading
+        />
+      </div>
+
+      {/* Analytics */}
+      <section className="space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-44" />
+          <Skeleton className="h-4 w-80 max-w-full" />
+        </div>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<ChartSkeleton key={index} title="Loading chart..." />
+          ))}
+        </div>
+      </section>
+
+      {/* Recent Bookings */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-16" />
+        </div>
+
+        <div className="overflow-hidden rounded-lg border">
+          <div className="grid grid-cols-4 gap-4 bg-muted/50 p-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<Skeleton key={index} className="h-4 w-20 max-w-full" />
+            ))}
+          </div>
+
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div
+              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+              key={index}
+              className="grid grid-cols-4 gap-4 border-t p-4"
+            >
+              {Array.from({ length: 4 }).map((_, cellIndex) => (
+                <Skeleton
+                  // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                  key={cellIndex}
+                  className="h-4 w-24 max-w-full"
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </section>
+    </main>
+  );
+}
+
+
 export default function ProviderDashboardPage() {
   const { data: profileResponse, isLoading: profileLoading } =
     useMyProviderProfile();
@@ -178,8 +297,8 @@ export default function ProviderDashboardPage() {
     paymentLoading;
 
   if (isLoading) {
-    return <div className="p-6">Loading dashboard...</div>;
-  }
+  return <ProviderDashboardSkeleton />;
+}
 
   const stats = [
     {

@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/toast";
 import type { CreateWorkLogPayload, WorkLog } from "@/types";
+import { Skeleton } from "@/components/ui/skeleton";
+import WorkLogCardSkeleton from "@/components/shared/work-log-card-skeleton";
+
 
 const initialForm = {
   bookingId: "",
@@ -48,8 +51,16 @@ export default function ProviderWorkLogsPage() {
   const [form, setForm] = useState(initialForm);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const { data, isLoading, isError } = useMyWorkLogs();
-  const { data: bookingsData } = useMyBookings();
+  const {
+  data,
+  isLoading,
+  isError,
+} = useMyWorkLogs();
+
+const {
+  data: bookingsData,
+  isLoading: isBookingsLoading,
+} = useMyBookings();
 
   const createMutation = useCreateWorkLog();
   const updateMutation = useUpdateWorkLog();
@@ -219,9 +230,58 @@ export default function ProviderWorkLogsPage() {
       !existingActiveBookingIds.has(booking.id),
   );
 
-  if (isLoading) {
-    return <div className="p-6">Loading work logs...</div>;
-  }
+  
+if (isLoading || isBookingsLoading) {
+  return (
+    <main className="space-y-6 p-4 sm:p-6">
+      {/* Page Header */}
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-72 max-w-full" />
+      </div>
+
+      {/* Create Work Log Form Skeleton */}
+      <div className="space-y-5 rounded-xl border bg-card p-5">
+        <Skeleton className="h-6 w-48" />
+
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+
+        <Skeleton className="h-10 w-36 rounded-md" />
+      </div>
+
+      {/* Work Log History Skeleton */}
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-52" />
+
+        <div className="grid gap-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<WorkLogCardSkeleton key={index} />
+          ))}
+        </div>
+      </div>
+    </main>
+  );
+}
+
 
   if (isError) {
     return (

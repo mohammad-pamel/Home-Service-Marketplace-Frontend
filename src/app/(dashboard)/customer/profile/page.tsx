@@ -6,6 +6,7 @@ import {
   useGetMyProfile,
   useUpdateMyProfile,
 } from "@/hooks/customer.hook";
+import CustomerProfileSkeleton from "@/components/shared/customer-profile-skeleton";
 
 type CustomerProfile = {
   id?: string;
@@ -62,12 +63,8 @@ export default function CustomerProfilePage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="p-6 text-sm text-muted-foreground">
-        Loading profile...
-      </div>
-    );
-  }
+  return <CustomerProfileSkeleton />;
+}
 
   if (isError) {
     return (

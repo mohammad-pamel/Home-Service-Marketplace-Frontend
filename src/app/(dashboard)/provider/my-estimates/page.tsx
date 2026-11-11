@@ -13,6 +13,9 @@ import type { CreateEstimatePayload } from "@/types/estimate.type";
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import EstimateCardSkeleton from "@/components/shared/estimate.card.skeleton";
+// import EstimateCardSkeleton from "@/components/shared/estimate-card-skeleton";
 
 type FormItem = {
   description: string;
@@ -64,13 +67,10 @@ export default function ProviderMyEstimatesPage() {
   // });
 
   const availableBookings = bookings.filter((booking) => {
-  const hasEstimate = Boolean(booking.estimate);
+    const hasEstimate = Boolean(booking.estimate);
 
-  return (
-    ["PENDING", "CONFIRMED"].includes(booking.status) &&
-    !hasEstimate
-  );
-});
+    return ["PENDING", "CONFIRMED"].includes(booking.status) && !hasEstimate;
+  });
 
   const subtotal = items.reduce(
     (sum, item) => sum + item.quantity * item.unitPrice,
@@ -251,7 +251,66 @@ export default function ProviderMyEstimatesPage() {
   };
 
   if (estimatesQuery.isLoading || bookingsQuery.isLoading) {
-    return <div className="p-6">Loading estimates...</div>;
+    return (
+      <main className="space-y-6 p-4 sm:p-6">
+        {/* Page Header */}
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-72 max-w-full" />
+        </div>
+
+        {/* Create Estimate Form Skeleton */}
+        <div className="space-y-5 rounded-lg border bg-card p-5">
+          <Skeleton className="h-6 w-48" />
+
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-9 w-24" />
+            </div>
+
+            {Array.from({ length: 2 }).map((_, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<div key={index} className="space-y-3 rounded-md border p-4">
+                <Skeleton className="h-4 w-16" />
+                <div className="grid gap-3 md:grid-cols-3">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-10 w-36" />
+        </div>
+
+        {/* Estimate History Skeleton */}
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-40" />
+
+          <div className="grid gap-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+              <EstimateCardSkeleton key={index} />
+            ))}
+          </div>
+        </div>
+      </main>
+    );
   }
 
   if (estimatesQuery.isError || bookingsQuery.isError) {
@@ -515,8 +574,11 @@ export default function ProviderMyEstimatesPage() {
         <h2 className="text-lg font-semibold">Estimate History</h2>
 
         {estimates.length === 0 ? (
-          <div className="rounded-lg border p-6 text-center text-muted-foreground">
-            No estimates found.
+          <div className="rounded-lg border bg-card px-4 py-12 text-center">
+            <h3 className="font-semibold">No Estimates Found</h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              You haven't created any estimates yet.
+            </p>
           </div>
         ) : (
           estimates.map((estimate) => (

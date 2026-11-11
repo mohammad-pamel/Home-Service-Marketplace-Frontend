@@ -12,7 +12,6 @@ import {
 } from "../ui/field";
 import { LoginSchema } from "@/validation";
 import { useLogin } from "@/hooks";
-import { error } from "console";
 import { useRouter } from "next/navigation";
 import { toast } from "../ui/toast";
 import { Spinner } from "../ui/spinner";
@@ -230,15 +229,11 @@ export default function LoginForm() {
         </FieldGroup>
       </form>
 
-      <DemoLoginButtons />
+     <DemoLoginButtons />
 
 <FieldSeparator>Or continue with</FieldSeparator>
 
 <GoogleLoginComponent />
-
-      {/* <FieldSeparator>Or continue with</FieldSeparator> */}
-
-      <GoogleLoginComponent />
 
       <div className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}

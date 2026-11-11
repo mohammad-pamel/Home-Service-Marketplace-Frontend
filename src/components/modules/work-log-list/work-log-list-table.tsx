@@ -1,12 +1,14 @@
-
 "use client";
 
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
+import DataTable, {
+  type DataTableColumn,
+} from "@/components/shared/data-table";
 import { useGetAllWorkLogs } from "@/hooks/admin.hook";
 import type { WorkLog } from "@/types";
 
-function formatDate(value?: string | null) {
+function formatDate(value?: string | Date | null) {
   if (!value) return "—";
 
   const date = new Date(value);
@@ -17,7 +19,7 @@ function formatDate(value?: string | null) {
 }
 
 export function WorkLogListTable() {
-  const { data, isLoading, isError } = useGetAllWorkLogs();
+  const { data, isLoading, isError, refetch } = useGetAllWorkLogs();
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -37,7 +39,9 @@ export function WorkLogListTable() {
         log.booking?.provider?.name,
         log.booking?.provider?.email,
         log.booking?.serviceRequest?.service?.name,
-      ].some((value) => value?.toLowerCase().includes(keyword));
+      ].some((value) =>
+        String(value ?? "").toLowerCase().includes(keyword),
+      );
 
       const status = log.completedAt ? "COMPLETED" : "IN_PROGRESS";
 
@@ -48,124 +52,142 @@ export function WorkLogListTable() {
     });
   }, [workLogs, search, statusFilter]);
 
-  if (isLoading) {
-    return <p className="p-4">Loading work logs...</p>;
-  }
+  const columns: DataTableColumn<WorkLog>[] = [
+    {
+      key: "title",
+      header: "Title",
+      cell: (log) => (
+        <div className="min-w-40">
+          <p className="font-medium">{log.title}</p>
+          <p className="max-w-xs whitespace-normal text-xs text-muted-foreground">
+            {log.description || "No description"}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "service",
+      header: "Service",
+      cell: (log) =>
+        log.booking?.serviceRequest?.service?.name ?? "—",
+    },
+    {
+      key: "customer",
+      header: "Customer",
+      cell: (log) => (
+        <div>
+          <p>{log.booking?.customer?.name ?? "—"}</p>
+          <p className="text-xs text-muted-foreground">
+            {log.booking?.customer?.email ?? ""}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "provider",
+      header: "Provider",
+      cell: (log) => (
+        <div>
+          <p>{log.booking?.provider?.name ?? "—"}</p>
+          <p className="text-xs text-muted-foreground">
+            {log.booking?.provider?.email ?? ""}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "bookingId",
+      header: "Booking ID",
+      cell: (log) => (
+        <span className="font-mono text-xs" title={log.bookingId}>
+          {log.bookingId.slice(0, 8)}...
+        </span>
+      ),
+    },
+    {
+      key: "startedAt",
+      header: "Started At",
+      cell: (log) => (
+        <span className="whitespace-nowrap">
+          {formatDate(log.startedAt)}
+        </span>
+      ),
+    },
+    {
+      key: "completedAt",
+      header: "Completed At",
+      cell: (log) => (
+        <span className="whitespace-nowrap">
+          {formatDate(log.completedAt)}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (log) => (
+        <span
+          className={
+            log.completedAt
+              ? "rounded-full bg-green-100 px-2 py-1 text-xs text-green-800"
+              : "rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800"
+          }
+        >
+          {log.completedAt ? "Completed" : "In Progress"}
+        </span>
+      ),
+    },
+  ];
 
   if (isError) {
     return (
-      <p className="p-4 text-red-500">
-        Failed to load work logs. Please try again.
-      </p>
+      <div className="space-y-3 rounded-md border p-6">
+        <p className="text-sm text-destructive">
+          Failed to load work logs. Please try again.
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="rounded-md border px-4 py-2 text-sm"
+        >
+          Retry
+        </button>
+      </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Input
-          placeholder="Search title, booking, customer, provider..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="sm:max-w-sm"
-        />
+      <DataTable
+        columns={columns}
+        data={filteredWorkLogs}
+        isLoading={isLoading}
+        skeletonRows={6}
+        emptyTitle="No work logs found"
+        emptyDescription="No work logs match your search or selected status."
+        caption={`Showing ${filteredWorkLogs.length} of ${workLogs.length} work logs`}
+        toolbar={
+          <div className="flex w-full flex-col gap-3 sm:flex-row">
+            <Input
+              placeholder="Search title, booking, customer, provider..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="sm:max-w-sm"
+            />
 
-        <select
-          aria-label="Filter work logs by status"
-          value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
-          className="h-10 rounded-md border bg-background px-3 text-sm"
-        >
-          <option value="ALL">All statuses</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
-      </div>
-
-      <div className="overflow-x-auto rounded-md border">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-muted/50">
-            <tr>
-              <th className="p-3">Title</th>
-              <th className="p-3">Service</th>
-              <th className="p-3">Customer</th>
-              <th className="p-3">Provider</th>
-              <th className="p-3">Booking ID</th>
-              <th className="p-3">Started At</th>
-              <th className="p-3">Completed At</th>
-              <th className="p-3">Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {filteredWorkLogs.map((log) => (
-              <tr key={log.id} className="border-t">
-                <td className="p-3">
-                  <div className="font-medium">{log.title}</div>
-                  <div className="max-w-xs whitespace-normal text-xs text-muted-foreground">
-                    {log.description || "No description"}
-                  </div>
-                </td>
-
-                <td className="p-3">
-                  {log.booking?.serviceRequest?.service?.name ?? "—"}
-                </td>
-
-                <td className="p-3">
-                  <div>{log.booking?.customer?.name ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {log.booking?.customer?.email}
-                  </div>
-                </td>
-
-                <td className="p-3">
-                  <div>{log.booking?.provider?.name ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {log.booking?.provider?.email}
-                  </div>
-                </td>
-
-                <td className="p-3">
-                  <span title={log.bookingId}>
-                    {log.bookingId.slice(0, 8)}...
-                  </span>
-                </td>
-
-                <td className="p-3">{formatDate(log.startedAt)}</td>
-
-                <td className="p-3">{formatDate(log.completedAt)}</td>
-
-                <td className="p-3">
-                  <span
-                    className={
-                      log.completedAt
-                        ? "rounded-full bg-green-100 px-2 py-1 text-xs text-green-800"
-                        : "rounded-full bg-yellow-100 px-2 py-1 text-xs text-yellow-800"
-                    }
-                  >
-                    {log.completedAt ? "Completed" : "In Progress"}
-                  </span>
-                </td>
-              </tr>
-            ))}
-
-            {filteredWorkLogs.length === 0 && (
-              <tr>
-                <td
-                  colSpan={8}
-                  className="p-6 text-center text-muted-foreground"
-                >
-                  No work logs found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <p className="text-sm text-muted-foreground">
-        Showing {filteredWorkLogs.length} of {workLogs.length} work logs
-      </p>
+            <select
+              aria-label="Filter work logs by status"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="h-10 rounded-md border bg-background px-3 text-sm"
+            >
+              <option value="ALL">All statuses</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="COMPLETED">Completed</option>
+            </select>
+          </div>
+        }
+      />
     </div>
   );
 }

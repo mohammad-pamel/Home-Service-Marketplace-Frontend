@@ -1,17 +1,16 @@
+
 "use client";
 
 import { useMemo, useState } from "react";
 import { useGetAllBookings } from "@/hooks/admin.hook";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Booking } from "@/types";
+import { Button } from "@/components/ui/button";
+
+import DataTable, {
+  type DataTableColumn,
+} from "@/components/shared/data-table";
+
+import type { Booking } from "@/types";
 
 const statusOptions = [
   "ALL",
@@ -22,7 +21,7 @@ const statusOptions = [
   "CANCELLED",
 ] as const;
 
-function formatDate(value?: string | null) {
+function formatDate(value?: string | Date | null) {
   if (!value) return "Not specified";
 
   return new Date(value).toLocaleString("en-GB", {
@@ -42,12 +41,12 @@ export default function BookingListTable() {
   const [statusFilter, setStatusFilter] =
     useState<(typeof statusOptions)[number]>("ALL");
 
-  const bookings = data?.data ?? [];
+  const bookings: Booking[] = data?.data ?? [];
 
   const filteredBookings = useMemo(() => {
     const term = search.trim().toLowerCase();
 
-    return bookings.filter((booking : Booking) => {
+    return bookings.filter((booking) => {
       const customerName = booking.customer?.name ?? "";
       const customerEmail = booking.customer?.email ?? "";
       const providerName = booking.provider?.name ?? "";
@@ -70,9 +69,82 @@ export default function BookingListTable() {
     });
   }, [bookings, search, statusFilter]);
 
-  if (isLoading) {
-    return <div className="p-6">Loading bookings...</div>;
-  }
+  // DataTable Columns
+  const columns: DataTableColumn<Booking>[] = [
+    {
+      key: "bookingId",
+      header: "Booking ID",
+      cell: (booking) => (
+        <span className="font-mono text-xs">{booking.id}</span>
+      ),
+    },
+    {
+      key: "customer",
+      header: "Customer",
+      cell: (booking) => (
+        <div className="min-w-36">
+          <p>{booking.customer?.name ?? "N/A"}</p>
+          <p className="text-xs text-muted-foreground">
+            {booking.customer?.email ?? "N/A"}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "provider",
+      header: "Provider",
+      cell: (booking) => (
+        <div className="min-w-36">
+          <p>{booking.provider?.name ?? "N/A"}</p>
+          <p className="text-xs text-muted-foreground">
+            {booking.provider?.email ?? "N/A"}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "service",
+      header: "Service",
+      cell: (booking) =>
+        booking.serviceRequest?.service?.name ?? "N/A",
+    },
+    {
+      key: "scheduledAt",
+      header: "Scheduled At",
+      cell: (booking) => (
+        <span className="whitespace-nowrap">
+          {formatDate(booking.scheduledAt)}
+        </span>
+      ),
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      cell: (booking) => (
+        <span className="whitespace-nowrap">
+          ৳{booking.totalAmount}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (booking) => (
+        <span className="whitespace-nowrap rounded-md border px-2 py-1 text-xs">
+          {booking.status.replaceAll("_", " ")}
+        </span>
+      ),
+    },
+    {
+      key: "createdAt",
+      header: "Created At",
+      cell: (booking) => (
+        <span className="whitespace-nowrap">
+          {formatDate(booking.createdAt)}
+        </span>
+      ),
+    },
+  ];
 
   if (isError) {
     return (
@@ -80,19 +152,21 @@ export default function BookingListTable() {
         <p className="text-red-500">
           Failed to load bookings. Check the Admin bookings API and try again.
         </p>
-        <button
+
+        <Button
           type="button"
+          variant="outline"
           onClick={() => refetch()}
-          className="rounded-md border px-4 py-2 text-sm"
         >
           Try Again
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      {/* Search and Filters */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <Input
           placeholder="Search booking, customer, provider, or service..."
@@ -113,101 +187,38 @@ export default function BookingListTable() {
         >
           {statusOptions.map((status) => (
             <option key={status} value={status}>
-              {status === "ALL" ? "All Statuses" : status.replaceAll("_", " ")}
+              {status === "ALL"
+                ? "All Statuses"
+                : status.replaceAll("_", " ")}
             </option>
           ))}
         </select>
 
-        <button
+        <Button
           type="button"
+          variant="outline"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="h-9 rounded-md border px-4 text-sm disabled:opacity-50"
+          className="h-9"
         >
           {isFetching ? "Refreshing..." : "Refresh"}
-        </button>
+        </Button>
       </div>
 
       <p className="text-sm text-muted-foreground">
         Total bookings: {filteredBookings.length}
       </p>
 
-      <div className="w-full overflow-x-auto rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Booking ID</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Provider</TableHead>
-              <TableHead>Service</TableHead>
-              <TableHead>Scheduled At</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Created At</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {filteredBookings.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center">
-                  No bookings found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredBookings.map((booking : Booking) => (
-                <TableRow key={booking.id}>
-                  <TableCell>
-                    <span className="font-mono text-xs">
-                      {booking.id}
-                    </span>
-                  </TableCell>
-
-                  <TableCell>
-                    <div className="min-w-36">
-                      <p>{booking.customer?.name ?? "N/A"}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {booking.customer?.email ?? "N/A"}
-                      </p>
-                    </div>
-                  </TableCell>
-
-                  <TableCell>
-                    <div className="min-w-36">
-                      <p>{booking.provider?.name ?? "N/A"}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {booking.provider?.email ?? "N/A"}
-                      </p>
-                    </div>
-                  </TableCell>
-
-                  <TableCell>
-                    {booking.serviceRequest?.service?.name ?? "N/A"}
-                  </TableCell>
-
-                  <TableCell className="whitespace-nowrap">
-                    {formatDate(booking.scheduledAt)}
-                  </TableCell>
-
-                  <TableCell className="whitespace-nowrap">
-                    ৳{booking.totalAmount}
-                  </TableCell>
-
-                  <TableCell>
-                    <span className="whitespace-nowrap rounded-md border px-2 py-1 text-xs">
-                      {booking.status.replaceAll("_", " ")}
-                    </span>
-                  </TableCell>
-
-                  <TableCell className="whitespace-nowrap">
-                    {formatDate(booking.createdAt)}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Reusable DataTable */}
+      <DataTable
+        columns={columns}
+        data={filteredBookings}
+        isLoading={isLoading}
+        skeletonRows={6}
+        emptyTitle="No bookings found"
+        emptyDescription="Try changing your search or status filter."
+        caption="A list of all marketplace bookings."
+      />
     </div>
   );
 }

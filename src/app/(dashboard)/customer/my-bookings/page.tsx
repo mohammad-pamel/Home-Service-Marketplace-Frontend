@@ -9,7 +9,8 @@ import {
   UserRound,
   CreditCard,
 } from "lucide-react";
-
+import { Skeleton } from "@/components/ui/skeleton";
+import CustomerBookingCardSkeleton from "@/components/shared/customer-booking-card-skeleton";
 import { useCreateCustomerPayment, useGetMyBookings } from "@/hooks/customer.hook";
 import { toast } from "@/components/ui/toast";
 import type { Booking } from "@/types/booking.type";
@@ -80,14 +81,51 @@ export default function MyBookingsPage() {
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[300px] items-center justify-center">
-        <RefreshCw className="animate-spin" />
-        <span className="ml-2">Loading bookings...</span>
+if (isLoading) {
+  return (
+    <div className="space-y-6 p-4 md:p-6">
+      {/* Header */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="space-y-2">
+          <Skeleton className="h-7 w-40" />
+          <Skeleton className="h-4 w-64 max-w-full" />
+        </div>
+
+        <Skeleton className="h-10 w-28 rounded-lg" />
       </div>
-    );
-  }
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<div key={index} className="space-y-4 rounded-xl border p-5">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
+            </div>
+            <Skeleton className="h-8 w-16" />
+          </div>
+        ))}
+      </div>
+
+      {/* Status Filters */}
+      <div className="flex flex-wrap gap-2">
+        {Array.from({ length: 6 }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<Skeleton key={index} className="h-9 w-24 rounded-lg" />
+        ))}
+      </div>
+
+      {/* Booking Cards */}
+      <div className="grid gap-4">
+        {Array.from({ length: 3 }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<CustomerBookingCardSkeleton key={index} />
+        ))}
+      </div>
+    </div>
+  );
+}
 
   if (isError) {
     return (

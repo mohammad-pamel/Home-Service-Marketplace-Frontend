@@ -9,6 +9,8 @@ import {
   useRejectCustomerEstimate,
 } from "@/hooks/customer.hook";
 import type { Estimate } from "@/types/estimate.type";
+import { Skeleton } from "@/components/ui/skeleton";
+import CustomerEstimateCardSkeleton from "@/components/shared/customer-estimate-card-skeleton";
 
 const statusStyles: Record<string, string> = {
   PENDING: "bg-amber-100 text-amber-700",
@@ -125,22 +127,25 @@ export default function CustomerEstimatesPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <SummaryCard
           title="Total Estimates"
-          value={isLoading ? "..." : estimates.length}
+          value={estimates.length}
           icon={<FileText size={20} />}
+          isLoading={isLoading}
         />
         <SummaryCard
           title="Pending"
-          value={isLoading ? "..." : pendingCount}
+          value={pendingCount}
           icon={<CalendarDays size={20} />}
+          isLoading={isLoading}
         />
         <SummaryCard
           title="Approved"
-          value={isLoading ? "..." : approvedCount}
+          value={approvedCount}
           icon={<Banknote size={20} />}
+          isLoading={isLoading}
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {/* <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-semibold">Estimate History</h2>
 
         <select
@@ -156,11 +161,40 @@ export default function CustomerEstimatesPage() {
           <option value="REJECTED">Rejected</option>
           <option value="EXPIRED">Expired</option>
         </select>
-      </div>
+      </div> */}
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+  {isLoading ? (
+    <Skeleton className="h-6 w-36" />
+  ) : (
+    <h2 className="text-lg font-semibold">Estimate History</h2>
+  )}
+
+  {isLoading ? (
+    <Skeleton className="h-10 w-36 rounded-lg" />
+  ) : (
+    <select
+      value={statusFilter}
+      onChange={(event) => setStatusFilter(event.target.value)}
+      className="rounded-lg border bg-background px-3 py-2 text-sm"
+      aria-label="Filter estimates by status"
+    >
+      <option value="ALL">All statuses</option>
+      <option value="DRAFT">Draft</option>
+      <option value="SENT">Sent</option>
+      <option value="APPROVED">Approved</option>
+      <option value="REJECTED">Rejected</option>
+      <option value="EXPIRED">Expired</option>
+    </select>
+  )}
+</div>
 
       {isLoading ? (
-        <div className="rounded-xl border p-10 text-center text-sm text-muted-foreground">
-          Loading estimates...
+        <div className="grid gap-4 lg:grid-cols-2">
+          {Array.from({ length: 4 }).map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+            <CustomerEstimateCardSkeleton key={index} />
+          ))}
         </div>
       ) : isError ? (
         <div className="rounded-xl border p-8 text-center">
@@ -313,18 +347,34 @@ function SummaryCard({
   title,
   value,
   icon,
+  isLoading = false,
 }: {
   title: string;
   value: string | number;
   icon: React.ReactNode;
+  isLoading?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between rounded-xl border p-5">
-      <div>
-        <p className="text-sm text-muted-foreground">{title}</p>
-        <p className="mt-2 text-2xl font-bold">{value}</p>
+      <div className="space-y-2">
+        {isLoading ? (
+          <>
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-8 w-16" />
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">{title}</p>
+            <p className="mt-2 text-2xl font-bold">{value}</p>
+          </>
+        )}
       </div>
-      <div className="rounded-lg bg-primary/10 p-3 text-primary">{icon}</div>
+
+      {isLoading ? (
+        <Skeleton className="h-12 w-12 rounded-lg" />
+      ) : (
+        <div className="rounded-lg bg-primary/10 p-3 text-primary">{icon}</div>
+      )}
     </div>
   );
 }

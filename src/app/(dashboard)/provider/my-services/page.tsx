@@ -9,6 +9,8 @@ import {
   useRemoveProviderService,
 } from "@/hooks/provider.hook";
 import { toast } from "@/components/ui/toast";
+import SummaryCard from "@/components/shared/summary-card";
+import ServiceCardSkeleton from "@/components/shared/service-card-skeleton";
 import {
   Search,
   X,
@@ -216,14 +218,8 @@ export default function ProviderMyServicesPage() {
     setSortBy("DEFAULT");
   }
 
-  if (servicesQuery.isLoading || myServicesQuery.isLoading) {
-    return (
-      <div className="flex min-h-[300px] items-center justify-center gap-3 text-muted-foreground">
-        <span className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <span className="text-sm font-medium">Loading services...</span>
-      </div>
-    );
-  }
+ const isPageLoading =
+  servicesQuery.isLoading || myServicesQuery.isLoading;
 
   if (servicesQuery.isError || myServicesQuery.isError) {
     return (
@@ -259,29 +255,38 @@ export default function ProviderMyServicesPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        <SummaryCard
-          title="Total Services"
-          value={myServices.length}
-          icon={<Layers size={19} />}
-        />
+      
+<div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+  <SummaryCard
+    title="Total Services"
+    value={String(myServices.length)}
+    icon={Layers}
+    description="Services added to your profile"
+    isLoading={isPageLoading}
+  />
 
-        <SummaryCard
-          title="Available Services"
-          value={availableServices.filter(
-            (service) => !addedServiceIds.has(service.id),
-          ).length}
-          icon={<CheckCircle2 size={19} />}
-        />
+  <SummaryCard
+    title="Available Services"
+    value={String(
+      availableServices.filter(
+        (service) => !addedServiceIds.has(service.id),
+      ).length,
+    )}
+    icon={CheckCircle2}
+    description="Services you can add"
+    isLoading={isPageLoading}
+  />
 
-        <div className="col-span-2 sm:col-span-1">
-          <SummaryCard
-            title="Categories"
-            value={categories.length}
-            icon={<Tag size={19} />}
-          />
-        </div>
-      </div>
+  <div className="col-span-2 sm:col-span-1">
+    <SummaryCard
+      title="Categories"
+      value={String(categories.length)}
+      icon={Tag}
+      description="Your service categories"
+      isLoading={isPageLoading}
+    />
+  </div>
+</div>
 
       {/* Add New Service */}
       <section className="overflow-hidden rounded-xl border bg-card">
@@ -470,7 +475,17 @@ export default function ProviderMyServicesPage() {
         </div>
 
         {/* Service List */}
-        {filteredServices.length === 0 ? (
+
+        {isPageLoading ? (
+  <div className="grid gap-4 md:grid-cols-2">
+    {Array.from({ length: 4 }).map((_, index) => (
+      // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<ServiceCardSkeleton key={index} />
+    ))}
+  </div>
+) :
+        
+        filteredServices.length === 0 ? (
           <div className="rounded-xl border bg-card px-4 py-12 text-center">
             <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-muted">
               <PackageOpen
@@ -647,28 +662,29 @@ export default function ProviderMyServicesPage() {
 }
 
 // Reusable Summary Card
-function SummaryCard({
-  title,
-  value,
-  icon,
-}: {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="rounded-xl border bg-card p-4">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground sm:text-sm">
-          {title}
-        </p>
+// biome-ignore lint/suspicious/noRedeclare: <explanation>
+// function SummaryCard({
+//   title,
+//   value,
+//   icon,
+// }: {
+//   title: string;
+//   value: number;
+//   icon: React.ReactNode;
+// }) {
+//   return (
+//     <div className="rounded-xl border bg-card p-4">
+//       <div className="flex items-center justify-between gap-2">
+//         <p className="text-xs text-muted-foreground sm:text-sm">
+//           {title}
+//         </p>
 
-        <div className="rounded-lg bg-primary/10 p-2 text-primary">
-          {icon}
-        </div>
-      </div>
+//         <div className="rounded-lg bg-primary/10 p-2 text-primary">
+//           {icon}
+//         </div>
+//       </div>
 
-      <p className="mt-3 text-2xl font-bold">{value}</p>
-    </div>
-  );
-}
+//       <p className="mt-3 text-2xl font-bold">{value}</p>
+//     </div>
+//   );
+// }

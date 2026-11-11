@@ -22,10 +22,10 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-  LoaderCircle,
   AlertCircle,
+  LoaderCircle,
 } from "lucide-react";
-
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   ResponsiveContainer,
   LineChart,
@@ -194,6 +194,142 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+
+function AdminOverviewSkeleton() {
+  return (
+    <main className="space-y-8 p-4 md:p-6">
+      {/* Header */}
+      <section className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-56" />
+          <Skeleton className="h-4 w-80 max-w-full" />
+        </div>
+        <Skeleton className="h-5 w-48" />
+      </section>
+
+      {/* Platform Statistics */}
+      <section className="space-y-4">
+        <Skeleton className="h-6 w-44" />
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<div key={index} className="rounded-xl border bg-card p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 space-y-3">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-9 w-24" />
+                  <Skeleton className="h-3 w-36" />
+                </div>
+                <Skeleton className="h-11 w-11 rounded-lg" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Booking and Payment Overview */}
+      <section className="grid gap-6 xl:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<div key={index} className="space-y-5 rounded-xl border bg-card p-5">
+            <Skeleton className="h-6 w-40" />
+
+            <div className="space-y-3">
+              {Array.from({ length: index === 0 ? 5 : 3 }).map(
+                (_, itemIndex) => (
+                  <div
+                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                    key={itemIndex}
+                    className="flex items-center justify-between rounded-lg border p-3"
+                  >
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-5 w-10" />
+                  </div>
+                ),
+              )}
+            </div>
+
+            {index === 1 && (
+              <div className="space-y-3 rounded-lg bg-muted/60 p-4">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-8 w-36" />
+              </div>
+            )}
+          </div>
+        ))}
+      </section>
+
+      {/* Analytics */}
+      <section className="space-y-5">
+        <div className="space-y-3">
+          <Skeleton className="h-7 w-48" />
+          <Skeleton className="h-4 w-80 max-w-full" />
+        </div>
+
+        {/* Revenue Chart */}
+        <div className="space-y-5 rounded-xl border bg-card p-5">
+          <div className="space-y-2">
+            <Skeleton className="h-5 w-44" />
+            <Skeleton className="h-3 w-64" />
+          </div>
+          <Skeleton className="h-[300px] w-full rounded-lg" />
+        </div>
+
+        {/* Booking Charts */}
+        <div className="grid gap-6 xl:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<div key={index} className="space-y-5 rounded-xl border bg-card p-5">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-3 w-64 max-w-full" />
+              </div>
+              <Skeleton className="h-[280px] w-full rounded-lg" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Recent Bookings and Payments */}
+      <section className="grid gap-6 xl:grid-cols-2">
+        {Array.from({ length: 2 }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<div key={index} className="overflow-hidden rounded-xl border bg-card">
+            <div className="flex items-center justify-between border-b p-5">
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-36" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+              <Skeleton className="h-4 w-16" />
+            </div>
+
+            <div className="divide-y">
+              {Array.from({ length: 5 }).map((_, itemIndex) => (
+                <div
+                  // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                  key={itemIndex}
+                  className="flex items-center justify-between gap-3 p-4"
+                >
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-40 max-w-full" />
+                    <Skeleton className="h-3 w-48 max-w-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-5 w-20 rounded-full" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+    </main>
+  );
+}
+
+
 export default function AdminOverviewPage() {
   const usersQuery = useGetAllUsers();
   const providersQuery = useGetAllProviders();
@@ -333,15 +469,8 @@ const bookingStatusData = [
 ].filter((item) => item.value > 0);
 
   if (isLoading) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <LoaderCircle className="h-5 w-5 animate-spin" />
-          <span>Loading dashboard overview...</span>
-        </div>
-      </div>
-    );
-  }
+  return <AdminOverviewSkeleton />;
+}
 
   return (
     <main className="space-y-8 p-4 md:p-6">
@@ -361,18 +490,44 @@ const bookingStatusData = [
         </div>
       </section>
 
-      {hasError && (
-        <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm">
-          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
-          <div>
-            <p className="font-medium">Some dashboard data could not load.</p>
-            <p className="mt-1 text-muted-foreground">
-              Check the failed API requests and admin permissions. The
-              other available sections will still be displayed.
-            </p>
-          </div>
-        </div>
-      )}
+      
+{hasError && (
+  <div className="flex flex-col gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex items-start gap-3 text-sm">
+      <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" />
+
+      <div>
+        <p className="font-medium">
+          Some dashboard data could not load.
+        </p>
+        <p className="mt-1 text-muted-foreground">
+          One or more API requests failed. Other available dashboard
+          sections are still displayed.
+        </p>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      onClick={() => {
+        void Promise.all([
+          usersQuery.refetch(),
+          providersQuery.refetch(),
+          categoriesQuery.refetch(),
+          servicesQuery.refetch(),
+          requestsQuery.refetch(),
+          bookingsQuery.refetch(),
+          paymentsQuery.refetch(),
+        ]);
+      }}
+      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-md border bg-background px-4 py-2 text-sm font-medium transition hover:bg-muted"
+    >
+      <LoaderCircle className="h-4 w-4" />
+      Retry All
+    </button>
+  </div>
+)}
+
 
       <section>
         <h2 className="mb-4 text-lg font-semibold">Platform Statistics</h2>
@@ -527,30 +682,42 @@ const bookingStatusData = [
       </p>
     </div>
 
-    <div className="h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={monthlyAnalytics}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="month" />
-          <YAxis />
-          <Tooltip
-            formatter={(value) => [
-              formatAmount(value),
-              "Revenue",
-            ]}
-          />
-          <Line
-            type="monotone"
-            dataKey="revenue"
-            name="Revenue"
-            stroke="#16A34A"
-            strokeWidth={3}
-            dot={{ r: 4 }}
-            activeDot={{ r: 7 }}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+   
+{monthlyAnalytics.some((item) => item.revenue > 0) ? (
+  <div className="h-[300px] w-full">
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={monthlyAnalytics}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        <XAxis dataKey="month" />
+        <YAxis />
+        <Tooltip
+          formatter={(value) => [
+            formatAmount(value),
+            "Revenue",
+          ]}
+        />
+        <Line
+          type="monotone"
+          dataKey="revenue"
+          name="Revenue"
+          stroke="#16A34A"
+          strokeWidth={3}
+          dot={{ r: 4 }}
+          activeDot={{ r: 7 }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+) : (
+  <div className="flex h-[300px] flex-col items-center justify-center gap-2 rounded-lg bg-muted/30">
+    <CreditCard className="h-8 w-8 text-muted-foreground" />
+    <p className="text-sm font-medium">No revenue data available</p>
+    <p className="text-xs text-muted-foreground">
+      Successful payments will appear here.
+    </p>
+  </div>
+)}
+
   </div>
 
   {/* Booking Trend + Status Chart */}
@@ -563,22 +730,34 @@ const bookingStatusData = [
         </p>
       </div>
 
-      <div className="h-[280px] w-full">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={monthlyAnalytics}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="month" />
-            <YAxis allowDecimals={false} />
-            <Tooltip />
-            <Bar
-              dataKey="bookings"
-              name="Bookings"
-              fill="#6366F1"
-              radius={[6, 6, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      
+{monthlyAnalytics.some((item) => item.bookings > 0) ? (
+  <div className="h-[280px] w-full">
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={monthlyAnalytics}>
+        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        <XAxis dataKey="month" />
+        <YAxis allowDecimals={false} />
+        <Tooltip />
+        <Bar
+          dataKey="bookings"
+          name="Bookings"
+          fill="#6366F1"
+          radius={[6, 6, 0, 0]}
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  </div>
+) : (
+  <div className="flex h-[280px] flex-col items-center justify-center gap-2 rounded-lg bg-muted/30">
+    <CalendarCheck className="h-8 w-8 text-muted-foreground" />
+    <p className="text-sm font-medium">No booking data available</p>
+    <p className="text-xs text-muted-foreground">
+      New bookings will appear here.
+    </p>
+  </div>
+)}
+
     </div>
 
     <div className="rounded-xl border bg-card p-5">

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { RefreshCw, Star, MessageSquare } from "lucide-react";
@@ -6,6 +5,8 @@ import {
   useMyProviderProfile,
   useProviderReviews,
 } from "@/hooks/provider.hook";
+import { Skeleton } from "@/components/ui/skeleton";
+import ReviewCardSkeleton from "@/components/shared/review-card-skeleton";
 
 function RatingStars({ rating }: { rating: number }) {
   return (
@@ -22,10 +23,48 @@ function RatingStars({ rating }: { rating: number }) {
           }
         />
       ))}
-      <span className="ml-1 text-sm font-medium">
-        {rating}/5
-      </span>
+      <span className="ml-1 text-sm font-medium">{rating}/5</span>
     </div>
+  );
+}
+
+function ReviewsPageSkeleton() {
+  return (
+    <main className="space-y-6 p-4 md:p-6">
+      {/* Header */}
+      <div className="flex flex-col justify-between gap-4 sm:flex-row">
+        <div className="space-y-3">
+          <Skeleton className="h-8 w-40" />
+          <Skeleton className="h-4 w-64 max-w-full" />
+        </div>
+        <Skeleton className="h-10 w-28 rounded-lg" />
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+          <div key={index} className="space-y-3 rounded-xl border p-5">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-8 w-20" />
+          </div>
+        ))}
+      </div>
+
+      {/* Reviews Heading */}
+      <div className="space-y-2">
+        <Skeleton className="h-6 w-40" />
+        <Skeleton className="h-4 w-72 max-w-full" />
+      </div>
+
+      {/* Review Cards */}
+      <div className="space-y-4">
+        {Array.from({ length: 3 }).map((_, index) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+          <ReviewCardSkeleton key={index} />
+        ))}
+      </div>
+    </main>
   );
 }
 
@@ -72,11 +111,7 @@ export default function ProviderReviewsPage() {
 
   // Loading state
   if (profileLoading) {
-    return (
-      <div className="p-6 text-sm text-muted-foreground">
-        Loading provider profile...
-      </div>
-    );
+    return <ReviewsPageSkeleton />;
   }
 
   // Profile error
@@ -87,9 +122,7 @@ export default function ProviderReviewsPage() {
           size={36}
           className="mx-auto mb-3 text-muted-foreground"
         />
-        <h2 className="font-semibold">
-          Provider Profile Not Found
-        </h2>
+        <h2 className="font-semibold">Provider Profile Not Found</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           Please create your provider profile first.
         </p>
@@ -99,25 +132,17 @@ export default function ProviderReviewsPage() {
 
   // Reviews loading
   if (reviewsLoading) {
-    return (
-      <div className="p-6 text-sm text-muted-foreground">
-        Loading reviews...
-      </div>
-    );
+    return <ReviewsPageSkeleton />;
   }
 
   // Reviews error
   if (reviewsError) {
     return (
       <div className="rounded-xl border p-8 text-center">
-        <p className="font-medium text-red-600">
-          Failed to load reviews.
-        </p>
+        <p className="font-medium text-red-600">Failed to load reviews.</p>
 
         <p className="mt-2 text-sm text-muted-foreground">
-          {error instanceof Error
-            ? error.message
-            : "Please try again."}
+          {error instanceof Error ? error.message : "Please try again."}
         </p>
 
         <button
@@ -134,25 +159,19 @@ export default function ProviderReviewsPage() {
   // Calculate average rating
   const averageRating =
     reviews.length > 0
-      ? reviews.reduce(
-          (total, review) => total + review.rating,
-          0,
-        ) / reviews.length
+      ? reviews.reduce((total, review) => total + review.rating, 0) /
+        reviews.length
       : 0;
 
   // Positive reviews
-  const positiveReviews = reviews.filter(
-    (review) => review.rating >= 4,
-  ).length;
+  const positiveReviews = reviews.filter((review) => review.rating >= 4).length;
 
   return (
     <div className="space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            My Reviews
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">My Reviews</h1>
 
           <p className="mt-1 text-sm text-muted-foreground">
             See what customers say about your services.
@@ -165,38 +184,27 @@ export default function ProviderReviewsPage() {
           disabled={isFetching}
           className="inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
         >
-          <RefreshCw
-            size={16}
-            className={isFetching ? "animate-spin" : ""}
-          />
+          <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
           Refresh
         </button>
       </div>
 
       {/* Summary Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <SummaryCard
-          title="Total Reviews"
-          value={reviews.length}
-        />
+        <SummaryCard title="Total Reviews" value={reviews.length} />
 
         <SummaryCard
           title="Average Rating"
           value={`${averageRating.toFixed(1)} / 5`}
         />
 
-        <SummaryCard
-          title="Positive Reviews"
-          value={positiveReviews}
-        />
+        <SummaryCard title="Positive Reviews" value={positiveReviews} />
       </div>
 
       {/* Customer Reviews */}
       <section className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold">
-            Customer Reviews
-          </h2>
+          <h2 className="text-lg font-semibold">Customer Reviews</h2>
 
           <p className="text-sm text-muted-foreground">
             Feedback shared by customers who completed your services.
@@ -210,13 +218,11 @@ export default function ProviderReviewsPage() {
               className="mx-auto mb-3 text-muted-foreground"
             />
 
-            <h3 className="font-semibold">
-              No reviews available yet
-            </h3>
+            <h3 className="font-semibold">No reviews available yet</h3>
 
             <p className="mt-2 text-sm text-muted-foreground">
-              Customer reviews will appear here after they submit
-              feedback for your completed services.
+              Customer reviews will appear here after they submit feedback for
+              your completed services.
             </p>
           </div>
         ) : (
@@ -246,8 +252,7 @@ export default function ProviderReviewsPage() {
                 <RatingStars rating={review.rating} />
 
                 <p className="text-sm leading-6">
-                  {review.comment?.trim() ||
-                    "No written comment provided."}
+                  {review.comment?.trim() || "No written comment provided."}
                 </p>
               </article>
             ))}
@@ -267,13 +272,9 @@ function SummaryCard({
 }) {
   return (
     <div className="rounded-xl border p-5">
-      <p className="text-sm text-muted-foreground">
-        {title}
-      </p>
+      <p className="text-sm text-muted-foreground">{title}</p>
 
-      <p className="mt-2 text-2xl font-bold">
-        {value}
-      </p>
+      <p className="mt-2 text-2xl font-bold">{value}</p>
     </div>
   );
 }

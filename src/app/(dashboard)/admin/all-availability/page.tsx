@@ -1,18 +1,12 @@
-
 "use client";
 
 import { useMemo, useState } from "react";
 import { useGetAllAvailability } from "@/hooks/admin.hook";
 import type { Availability } from "@/types";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import DataTable, {
+  type DataTableColumn,
+} from "@/components/shared/data-table";
 
 const days = [
   "Sunday",
@@ -52,18 +46,53 @@ export default function AdminAvailabilityPage() {
     });
   }, [availability, search, filter]);
 
-  if (isLoading) {
-    return <p className="p-6 text-sm text-muted-foreground">Loading availability...</p>;
-  }
+  const columns: DataTableColumn<Availability>[] = [
+    {
+      key: "provider",
+      header: "Provider",
+      cell: (item) => item.provider?.user?.name ?? "—",
+    },
+    {
+      key: "email",
+      header: "Email",
+      cell: (item) => item.provider?.user?.email ?? "—",
+    },
+    {
+      key: "day",
+      header: "Day",
+      cell: (item) => days[item.dayOfWeek] ?? "Unknown",
+    },
+    {
+      key: "startTime",
+      header: "Start Time",
+      cell: (item) => item.startTime,
+    },
+    {
+      key: "endTime",
+      header: "End Time",
+      cell: (item) => item.endTime,
+    },
+    {
+      key: "status",
+      header: "Status",
+      cell: (item) => (
+        <span className="rounded-full border px-2 py-1 text-xs">
+          {item.isAvailable ? "Available" : "Unavailable"}
+        </span>
+      ),
+    },
+  ];
 
   if (isError) {
     return (
       <div className="space-y-3 p-6">
-        <p>Failed to load availability.</p>
+        <p className="text-sm text-destructive">
+          Failed to load availability.
+        </p>
         <button
           type="button"
           onClick={() => refetch()}
-          className="rounded-md border px-4 py-2"
+          className="rounded-md border px-4 py-2 text-sm"
         >
           Retry
         </button>
@@ -74,81 +103,44 @@ export default function AdminAvailabilityPage() {
   return (
     <div className="space-y-4 p-4 md:p-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Provider Availability</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Provider Availability
+        </h1>
         <p className="text-sm text-muted-foreground">
           View provider schedules and availability.
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <Input
-          placeholder="Search provider name or email..."
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          className="sm:max-w-md"
-        />
+      <DataTable
+        columns={columns}
+        data={filtered}
+        isLoading={isLoading}
+        skeletonRows={6}
+        emptyTitle="No availability records found"
+        emptyDescription="No schedules match your search or selected filter."
+        caption={`Showing ${filtered.length} of ${availability.length} schedules`}
+        toolbar={
+          <div className="flex w-full flex-col gap-3 sm:flex-row">
+            <Input
+              placeholder="Search provider name or email..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className="sm:max-w-md"
+            />
 
-        <select
-          value={filter}
-          onChange={(event) => setFilter(event.target.value)}
-          aria-label="Filter availability"
-          className="h-10 rounded-md border bg-background px-3 text-sm"
-        >
-          <option value="ALL">All schedules</option>
-          <option value="AVAILABLE">Available</option>
-          <option value="UNAVAILABLE">Unavailable</option>
-        </select>
-      </div>
-
-      <div className="overflow-x-auto rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Provider</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Day</TableHead>
-              <TableHead>Start Time</TableHead>
-              <TableHead>End Time</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-
-          <TableBody>
-            {filtered.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  No availability records found.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filtered.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    {item.provider?.user?.name ?? "—"}
-                  </TableCell>
-                  <TableCell>
-                    {item.provider?.user?.email ?? "—"}
-                  </TableCell>
-                  <TableCell>
-                    {days[item.dayOfWeek] ?? "Unknown"}
-                  </TableCell>
-                  <TableCell>{item.startTime}</TableCell>
-                  <TableCell>{item.endTime}</TableCell>
-                  <TableCell>
-                    <span className="rounded-full border px-2 py-1 text-xs">
-                      {item.isAvailable ? "Available" : "Unavailable"}
-                    </span>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      <p className="text-sm text-muted-foreground">
-        Showing {filtered.length} of {availability.length} schedules
-      </p>
+            <select
+              value={filter}
+              onChange={(event) => setFilter(event.target.value)}
+              aria-label="Filter availability"
+              className="h-10 rounded-md border bg-background px-3 text-sm"
+            >
+              <option value="ALL">All schedules</option>
+              <option value="AVAILABLE">Available</option>
+              <option value="UNAVAILABLE">Unavailable</option>
+            </select>
+          </div>
+        }
+      />
     </div>
   );
 }

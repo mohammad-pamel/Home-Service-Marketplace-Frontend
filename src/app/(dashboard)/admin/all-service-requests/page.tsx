@@ -1,4 +1,5 @@
 
+import { Suspense } from "react";
 import ServiceRequestListTable from "@/components/modules/service-request-list/service-request-list-table";
 
 export default function AllServiceRequestsPage() {
@@ -13,7 +14,9 @@ export default function AllServiceRequestsPage() {
         </p>
       </div>
 
-      <ServiceRequestListTable />
+      <Suspense fallback={<div className="p-6">Loading service requests...</div>}>
+        <ServiceRequestListTable />
+      </Suspense>
     </div>
   );
 }

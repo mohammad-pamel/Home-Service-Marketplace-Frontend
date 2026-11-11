@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -11,9 +10,17 @@ import {
   ArrowRight,
   XCircle,
 } from "lucide-react";
-
-import { useGetMyServiceRequests, useCancelMyServiceRequest, useCreateCustomerBooking } from "@/hooks/customer.hook";
-import type { ServiceRequest, ServiceRequestStatus } from "@/types/service-request.type";
+import ServiceRequestCardSkeleton from "@/components/shared/service-request-card-skeleton";
+import {
+  useGetMyServiceRequests,
+  useCancelMyServiceRequest,
+  useCreateCustomerBooking,
+} from "@/hooks/customer.hook";
+import type {
+  ServiceRequest,
+  ServiceRequestStatus,
+} from "@/types/service-request.type";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const statusStyles: Record<ServiceRequestStatus, string> = {
   PENDING: "bg-yellow-100 text-yellow-800",
@@ -46,13 +53,11 @@ function formatStatus(status: string) {
 export default function MyRequestsPage() {
   const { data, isLoading, isError, refetch, isFetching } =
     useGetMyServiceRequests();
-    const createBookingMutation = useCreateCustomerBooking();
+  const createBookingMutation = useCreateCustomerBooking();
 
-const [bookingRequestId, setBookingRequestId] = useState<string | null>(
-  null,
-);
+  const [bookingRequestId, setBookingRequestId] = useState<string | null>(null);
 
-const [scheduledAt, setScheduledAt] = useState("");
+  const [scheduledAt, setScheduledAt] = useState("");
 
   const cancelMutation = useCancelMyServiceRequest();
   const [actionError, setActionError] = useState("");
@@ -82,39 +87,35 @@ const [scheduledAt, setScheduledAt] = useState("");
   }
 
   async function handleCreateBooking(requestId: string) {
-  if (!scheduledAt) {
-    setActionError("Please select a booking date and time.");
-    return;
+    if (!scheduledAt) {
+      setActionError("Please select a booking date and time.");
+      return;
+    }
+
+    setActionError("");
+
+    try {
+      await createBookingMutation.mutateAsync({
+        serviceRequestId: requestId,
+        scheduledAt: new Date(scheduledAt).toISOString(),
+      });
+
+      setBookingRequestId(null);
+      setScheduledAt("");
+
+      window.alert("Booking created successfully!");
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : "Unable to create booking.",
+      );
+    }
   }
-
-  setActionError("");
-
-  try {
-    await createBookingMutation.mutateAsync({
-      serviceRequestId: requestId,
-      scheduledAt: new Date(scheduledAt).toISOString(),
-    });
-
-    setBookingRequestId(null);
-    setScheduledAt("");
-
-    window.alert("Booking created successfully!");
-  } catch (error) {
-    setActionError(
-      error instanceof Error
-        ? error.message
-        : "Unable to create booking.",
-    );
-  }
-}
 
   return (
     <main className="space-y-6 p-4 md:p-6">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-sm font-medium text-primary">
-            Customer Dashboard
-          </p>
+          <p className="text-sm font-medium text-primary">Customer Dashboard</p>
           <h1 className="mt-1 text-2xl font-bold md:text-3xl">
             My Service Requests
           </h1>
@@ -129,7 +130,9 @@ const [scheduledAt, setScheduledAt] = useState("");
           disabled={isFetching}
           className="inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2.5 text-sm font-medium hover:bg-muted disabled:opacity-50"
         >
-          <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`}
+          />
           Refresh
         </button>
       </section>
@@ -137,45 +140,67 @@ const [scheduledAt, setScheduledAt] = useState("");
       <section className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border bg-card p-4">
           <p className="text-sm text-muted-foreground">Total Requests</p>
-          <p className="mt-2 text-2xl font-bold">
-            {isLoading ? "..." : requests.length}
-          </p>
+          {/* <p className="mt-2 text-2xl font-bold"> */}
+            {isLoading ? (
+              <Skeleton className="mt-2 h-8 w-16" />
+            ) : (
+              <p className="mt-2 text-2xl font-bold">{requests.length}</p>
+            )}
+          {/* </p> */}
         </div>
 
         <div className="rounded-xl border bg-card p-4">
           <p className="text-sm text-muted-foreground">Active Requests</p>
-          <p className="mt-2 text-2xl font-bold">
-            {isLoading
-              ? "..."
-              : requests.filter((request) =>
-                  ["PENDING", "MATCHED", "ACCEPTED", "IN_PROGRESS"].includes(
-                    request.status,
-                  ),
-                ).length}
-          </p>
+          {/* <p className="mt-2 text-2xl font-bold"> */}
+            {isLoading ? (
+              <Skeleton className="mt-2 h-8 w-16" />
+            ) : (
+              <p className="mt-2 text-2xl font-bold">
+                {
+                  requests.filter((request) =>
+                    ["PENDING", "MATCHED", "ACCEPTED", "IN_PROGRESS"].includes(
+                      request.status,
+                    ),
+                  ).length
+                }
+              </p>
+            )}
+          {/* </p> */}
         </div>
 
         <div className="rounded-xl border bg-card p-4">
           <p className="text-sm text-muted-foreground">Completed</p>
-          <p className="mt-2 text-2xl font-bold">
-            {isLoading
-              ? "..."
-              : requests.filter((request) => request.status === "COMPLETED")
-                  .length}
-          </p>
+          {/* <p className="mt-2 text-2xl font-bold"> */}
+            {isLoading ? (
+              <Skeleton className="mt-2 h-8 w-16" />
+            ) : (
+              <p className="mt-2 text-2xl font-bold">
+                {
+                  requests.filter((request) => request.status === "COMPLETED")
+                    .length
+                }
+              </p>
+            )}
+          {/* </p> */}
         </div>
       </section>
 
       {actionError && (
-        <div role="alert" className="rounded-lg border border-red-300 p-4 text-sm text-red-600">
+        <div
+          role="alert"
+          className="rounded-lg border border-red-300 p-4 text-sm text-red-600"
+        >
           {actionError}
         </div>
       )}
 
       {isLoading ? (
-        <div className="rounded-xl border p-10 text-center text-muted-foreground">
-          Loading your service requests...
-        </div>
+        <section className="space-y-4">
+          {Array.from({ length: 3 }).map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+            <ServiceRequestCardSkeleton key={index} />
+          ))}
+        </section>
       ) : isError ? (
         <div className="space-y-3 rounded-xl border p-8 text-center">
           <p className="text-sm text-red-500">
@@ -218,9 +243,7 @@ const [scheduledAt, setScheduledAt] = useState("");
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h2 className="text-lg font-semibold">
-                        {request.title}
-                      </h2>
+                      <h2 className="text-lg font-semibold">{request.title}</h2>
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-semibold ${statusStyles[request.status]}`}
                       >
@@ -284,70 +307,73 @@ const [scheduledAt, setScheduledAt] = useState("");
                 )}
 
                 {/* Create Booking */}
-{request.status === "ACCEPTED" && !request.booking && (
-  <div className="mt-4 rounded-lg border border-primary/30 p-4">
-    <h3 className="font-semibold">Your provider has accepted!</h3>
+                {request.status === "ACCEPTED" && !request.booking && (
+                  <div className="mt-4 rounded-lg border border-primary/30 p-4">
+                    <h3 className="font-semibold">
+                      Your provider has accepted!
+                    </h3>
 
-    <p className="mt-1 text-sm text-muted-foreground">
-      Select your preferred booking date and time to confirm the booking.
-    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Select your preferred booking date and time to confirm the
+                      booking.
+                    </p>
 
-    {bookingRequestId === request.id ? (
-      <div className="mt-4 space-y-3">
-        <div>
-          <label
-            htmlFor={`booking-date-${request.id}`}
-            className="mb-1 block text-sm font-medium"
-          >
-            Booking Date & Time
-          </label>
+                    {bookingRequestId === request.id ? (
+                      <div className="mt-4 space-y-3">
+                        <div>
+                          <label
+                            htmlFor={`booking-date-${request.id}`}
+                            className="mb-1 block text-sm font-medium"
+                          >
+                            Booking Date & Time
+                          </label>
 
-          <input
-            id={`booking-date-${request.id}`}
-            type="datetime-local"
-            value={scheduledAt}
-            min={new Date().toISOString().slice(0, 16)}
-            onChange={(e) => setScheduledAt(e.target.value)}
-            className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-            required
-          />
-        </div>
+                          <input
+                            id={`booking-date-${request.id}`}
+                            type="datetime-local"
+                            value={scheduledAt}
+                            min={new Date().toISOString().slice(0, 16)}
+                            onChange={(e) => setScheduledAt(e.target.value)}
+                            className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                            required
+                          />
+                        </div>
 
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => handleCreateBooking(request.id)}
-            disabled={createBookingMutation.isPending}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
-          >
-            {createBookingMutation.isPending
-              ? "Creating..."
-              : "Confirm Booking"}
-          </button>
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleCreateBooking(request.id)}
+                            disabled={createBookingMutation.isPending}
+                            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+                          >
+                            {createBookingMutation.isPending
+                              ? "Creating..."
+                              : "Confirm Booking"}
+                          </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              setBookingRequestId(null);
-              setScheduledAt("");
-            }}
-            className="rounded-lg border px-4 py-2 text-sm"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    ) : (
-      <button
-        type="button"
-        onClick={() => setBookingRequestId(request.id)}
-        className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-      >
-        Create Booking
-      </button>
-    )}
-  </div>
-)}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setBookingRequestId(null);
+                              setScheduledAt("");
+                            }}
+                            className="rounded-lg border px-4 py-2 text-sm"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setBookingRequestId(request.id)}
+                        className="mt-3 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+                      >
+                        Create Booking
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
                   <p className="text-xs text-muted-foreground">
@@ -362,7 +388,9 @@ const [scheduledAt, setScheduledAt] = useState("");
                       className="inline-flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
                     >
                       <XCircle className="h-4 w-4" />
-                      {cancelMutation.isPending ? "Cancelling..." : "Cancel Request"}
+                      {cancelMutation.isPending
+                        ? "Cancelling..."
+                        : "Cancel Request"}
                     </button>
                   )}
                 </div>

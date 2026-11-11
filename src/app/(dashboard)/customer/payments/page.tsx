@@ -4,6 +4,8 @@ import { useState } from "react";
 import { RefreshCw, CreditCard, CheckCircle2, Clock3 } from "lucide-react";
 import { useGetMyPayments } from "@/hooks/customer.hook";
 import type { Payment } from "@/types/payment.type";
+import { Skeleton } from "@/components/ui/skeleton";
+import CustomerPaymentCardSkeleton from "@/components/shared/customer-payment-card-skeleton";
 
 function formatDate(value?: string | null) {
   if (!value) return "—";
@@ -56,9 +58,7 @@ export default function CustomerPaymentsPage() {
   const filteredPayments =
     statusFilter === "ALL"
       ? payments
-      : payments.filter(
-          (payment) => payment.status === statusFilter,
-        );
+      : payments.filter((payment) => payment.status === statusFilter);
 
   const paidStatuses = ["PAID", "SUCCESS", "COMPLETED"];
 
@@ -70,24 +70,22 @@ export default function CustomerPaymentsPage() {
     (payment) => payment.status === "PENDING",
   ).length;
 
-//   const totalPaid = payments.reduce((sum, payment) => {
-//     if (!paidStatuses.includes(payment.status)) return sum;
-//     return sum + Number(payment.amount || 0);
-//   }, 0);
+  //   const totalPaid = payments.reduce((sum, payment) => {
+  //     if (!paidStatuses.includes(payment.status)) return sum;
+  //     return sum + Number(payment.amount || 0);
+  //   }, 0);
 
-const totalPaid = payments.reduce((sum, payment) => {
-  if (payment.status !== "SUCCESS") return sum;
+  const totalPaid = payments.reduce((sum, payment) => {
+    if (payment.status !== "SUCCESS") return sum;
 
-  return sum + Number(payment.amount || 0);
-}, 0);
+    return sum + Number(payment.amount || 0);
+  }, 0);
 
   return (
     <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            Payment History
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight">Payment History</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Review your service payments and transaction statuses.
           </p>
@@ -99,10 +97,7 @@ const totalPaid = payments.reduce((sum, payment) => {
           disabled={isFetching}
           className="inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
         >
-          <RefreshCw
-            size={16}
-            className={isFetching ? "animate-spin" : ""}
-          />
+          <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
           Refresh
         </button>
       </div>
@@ -110,54 +105,64 @@ const totalPaid = payments.reduce((sum, payment) => {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <SummaryCard
           title="Total Paid"
-          value={isLoading ? "..." : formatAmount(totalPaid)}
+          value={formatAmount(totalPaid)}
           icon={<CreditCard size={20} />}
+          isLoading={isLoading}
         />
         <SummaryCard
           title="Successful Payments"
-          value={isLoading ? "..." : successfulCount}
+          value={successfulCount}
           icon={<CheckCircle2 size={20} />}
+          isLoading={isLoading}
         />
         <SummaryCard
           title="Pending Payments"
-          value={isLoading ? "..." : pendingCount}
+          value={pendingCount}
           icon={<Clock3 size={20} />}
+          isLoading={isLoading}
         />
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-lg font-semibold">Transactions</h2>
+        {isLoading ? (
+          <Skeleton className="h-6 w-32" />
+        ) : (
+          <h2 className="text-lg font-semibold">Transactions</h2>
+        )}
 
-        <select
-          aria-label="Filter payments by status"
-          value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
-          className="rounded-lg border bg-background px-3 py-2 text-sm"
-        >
-          <option value="ALL">All statuses</option>
-          {[...new Set(payments.map((payment) => payment.status))].map(
-            (status) => (
-              <option key={status} value={status}>
-                {status.replaceAll("_", " ")}
-              </option>
-            ),
-          )}
-        </select>
+        {isLoading ? (
+          <Skeleton className="h-10 w-36 rounded-lg" />
+        ) : (
+          <select
+            aria-label="Filter payments by status"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            className="rounded-lg border bg-background px-3 py-2 text-sm"
+          >
+            <option value="ALL">All statuses</option>
+            {[...new Set(payments.map((payment) => payment.status))].map(
+              (status) => (
+                <option key={status} value={status}>
+                  {status.replaceAll("_", " ")}
+                </option>
+              ),
+            )}
+          </select>
+        )}
       </div>
 
       {isLoading ? (
-        <div className="rounded-xl border p-10 text-center text-sm text-muted-foreground">
-          Loading payment history...
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+            <CustomerPaymentCardSkeleton key={index} />
+          ))}
         </div>
       ) : isError ? (
         <div className="rounded-xl border p-8 text-center">
-          <p className="font-medium text-red-600">
-            Failed to load payments.
-          </p>
+          <p className="font-medium text-red-600">Failed to load payments.</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            {error instanceof Error
-              ? error.message
-              : "Please try again."}
+            {error instanceof Error ? error.message : "Please try again."}
           </p>
           <button
             type="button"
@@ -200,16 +205,13 @@ const totalPaid = payments.reduce((sum, payment) => {
 
             const status = String(payment.status);
             const transactionId =
-  payment.transactionId ??
-  payment.bkashTrxId ??
-  payment.merchantInvoiceNumber ??
-  payment.id;
+              payment.transactionId ??
+              payment.bkashTrxId ??
+              payment.merchantInvoiceNumber ??
+              payment.id;
 
             return (
-              <article
-                key={payment.id}
-                className="rounded-xl border p-5"
-              >
+              <article key={payment.id} className="rounded-xl border p-5">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                   <div className="flex items-start gap-3">
                     <div className="rounded-lg bg-primary/10 p-3 text-primary">
@@ -236,8 +238,7 @@ const totalPaid = payments.reduce((sum, payment) => {
                     </p>
                     <span
                       className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-medium ${
-                        statusStyles[status] ??
-                        "bg-gray-100 text-gray-600"
+                        statusStyles[status] ?? "bg-gray-100 text-gray-600"
                       }`}
                     >
                       {status.replaceAll("_", " ")}
@@ -246,10 +247,7 @@ const totalPaid = payments.reduce((sum, payment) => {
                 </div>
 
                 <div className="mt-5 grid gap-4 border-t pt-4 text-sm sm:grid-cols-3">
-                  <Detail
-                    label="Payment Method"
-                    value={item.method ?? "—"}
-                  />
+                  <Detail label="Payment Method" value={item.method ?? "—"} />
                   <Detail
                     label="Payment Provider"
                     value={item.provider ?? "—"}
@@ -272,20 +270,34 @@ function SummaryCard({
   title,
   value,
   icon,
+  isLoading = false,
 }: {
   title: string;
   value: string | number;
   icon: React.ReactNode;
+  isLoading?: boolean;
 }) {
   return (
     <div className="flex items-center justify-between rounded-xl border p-5">
-      <div>
-        <p className="text-sm text-muted-foreground">{title}</p>
-        <p className="mt-2 text-2xl font-bold">{value}</p>
+      <div className="space-y-2">
+        {isLoading ? (
+          <>
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-8 w-28" />
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-muted-foreground">{title}</p>
+            <p className="mt-2 text-2xl font-bold">{value}</p>
+          </>
+        )}
       </div>
-      <div className="rounded-lg bg-primary/10 p-3 text-primary">
-        {icon}
-      </div>
+
+      {isLoading ? (
+        <Skeleton className="h-12 w-12 rounded-lg" />
+      ) : (
+        <div className="rounded-lg bg-primary/10 p-3 text-primary">{icon}</div>
+      )}
     </div>
   );
 }

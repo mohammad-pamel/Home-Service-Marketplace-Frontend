@@ -1,7 +1,9 @@
+
 "use client";
 
 import { useState } from "react";
 import { toast } from "@/components/ui/toast";
+
 import {
   useCreateService,
   useDeleteService,
@@ -9,8 +11,13 @@ import {
   useGetAllServices,
   useUpdateService,
 } from "@/hooks/admin.hook";
+
 import type { Category, CreateServicePayload, Service } from "@/types";
+
 import { Button } from "@/components/ui/button";
+import DataTable, {
+  type DataTableColumn,
+} from "@/components/shared/data-table";
 
 export default function ServiceListTable() {
   const { data, isLoading, isError } = useGetAllServices();
@@ -20,18 +27,11 @@ export default function ServiceListTable() {
   const updateMutation = useUpdateService();
   const deleteMutation = useDeleteService();
 
-//   const services: Service[] = data?.data ?? [];
-// const services: Service[] = Array.isArray(data?.data)
-//   ? data.data
-//   : Array.isArray(data)
-//     ? data
-//     : [];
+  const services: Service[] = Array.isArray(data?.data?.data)
+    ? data.data.data
+    : [];
 
-const services: Service[] = Array.isArray(data?.data?.data)
-  ? data.data.data
-  : [];
   const categories: Category[] = categoryData?.data ?? [];
-
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
@@ -56,6 +56,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
       basePrice: "",
       durationMinutes: "",
     });
+
     setEditingService(null);
     setFormError("");
     setIsFormOpen(false);
@@ -63,6 +64,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
 
   function openCreateForm() {
     setEditingService(null);
+
     setForm({
       categoryId: "",
       name: "",
@@ -71,12 +73,14 @@ const services: Service[] = Array.isArray(data?.data?.data)
       basePrice: "",
       durationMinutes: "",
     });
+
     setFormError("");
     setIsFormOpen(true);
   }
 
   function openUpdateForm(service: Service) {
     setEditingService(service);
+
     setForm({
       categoryId: service.categoryId,
       name: service.name,
@@ -84,8 +88,11 @@ const services: Service[] = Array.isArray(data?.data?.data)
       description: service.description ?? "",
       basePrice: String(service.basePrice),
       durationMinutes:
-        service.durationMinutes == null ? "" : String(service.durationMinutes),
+        service.durationMinutes == null
+          ? ""
+          : String(service.durationMinutes),
     });
+
     setFormError("");
     setIsFormOpen(true);
   }
@@ -157,8 +164,10 @@ const services: Service[] = Array.isArray(data?.data?.data)
             : "The new service was created successfully.",
           type: "success" as const,
         });
+
         resetForm();
       },
+
       onError: () => {
         setFormError(
           "Could not save the service. Check the fields and your admin login, then try again.",
@@ -167,7 +176,10 @@ const services: Service[] = Array.isArray(data?.data?.data)
     };
 
     if (editingService) {
-      updateMutation.mutate({ serviceId: editingService.id, payload }, options);
+      updateMutation.mutate(
+        { serviceId: editingService.id, payload },
+        options,
+      );
     } else {
       createMutation.mutate(payload, options);
     }
@@ -188,6 +200,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
           type: "success",
         });
       },
+
       onError: () => {
         toast.add({
           title: "Delete failed",
@@ -198,10 +211,76 @@ const services: Service[] = Array.isArray(data?.data?.data)
     });
   }
 
-  const isSaving = createMutation.isPending || updateMutation.isPending;
+  const isSaving =
+    createMutation.isPending || updateMutation.isPending;
+
+  // Reusable DataTable Columns
+  const columns: DataTableColumn<Service>[] = [
+    {
+      key: "service",
+      header: "Service",
+      cell: (service) => (
+        <span className="font-medium">{service.name}</span>
+      ),
+    },
+    {
+      key: "category",
+      header: "Category",
+      cell: (service) =>
+        service.category?.name ??
+        categories.find(
+          (category) => category.id === service.categoryId,
+        )?.name ??
+        "—",
+    },
+    {
+      key: "basePrice",
+      header: "Base Price",
+      cell: (service) =>
+        Number(service.basePrice).toFixed(2),
+    },
+    {
+      key: "duration",
+      header: "Duration",
+      cell: (service) =>
+        service.durationMinutes == null
+          ? "—"
+          : `${service.durationMinutes} min`,
+    },
+    {
+      key: "slug",
+      header: "Slug",
+      cell: (service) => service.slug,
+    },
+    {
+      key: "actions",
+      header: "Actions",
+      cell: (service) => (
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            onClick={() => openUpdateForm(service)}
+            className="rounded border px-3 py-1"
+          >
+            Edit
+          </Button>
+
+          <Button
+            type="button"
+            onClick={() => handleDelete(service)}
+            disabled={deleteMutation.isPending}
+            variant="destructive"
+          >
+            Delete
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <section className="space-y-6">
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Services</h1>
@@ -219,6 +298,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
         </Button>
       </div>
 
+      {/* Create / Update Form */}
       {isFormOpen && (
         <div className="rounded-lg border p-5">
           <h2 className="mb-4 text-lg font-semibold">
@@ -227,6 +307,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
+              {/* Category */}
               <div className="space-y-1">
                 <label
                   htmlFor="service-category"
@@ -234,6 +315,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
                 >
                   Category *
                 </label>
+
                 <select
                   id="service-category"
                   value={form.categoryId}
@@ -247,6 +329,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
                   className="w-full rounded-md border px-3 py-2"
                 >
                   <option value="">Select a category</option>
+
                   {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name}
@@ -255,24 +338,36 @@ const services: Service[] = Array.isArray(data?.data?.data)
                 </select>
               </div>
 
+              {/* Service Name */}
               <div className="space-y-1">
-                <label htmlFor="service-name" className="text-sm font-medium">
+                <label
+                  htmlFor="service-name"
+                  className="text-sm font-medium"
+                >
                   Service Name *
                 </label>
+
                 <input
                   id="service-name"
                   value={form.name}
-                  onChange={(event) => handleNameChange(event.target.value)}
+                  onChange={(event) =>
+                    handleNameChange(event.target.value)
+                  }
                   required
                   placeholder="e.g. Home Cleaning"
                   className="w-full rounded-md border px-3 py-2"
                 />
               </div>
 
+              {/* Slug */}
               <div className="space-y-1">
-                <label htmlFor="service-slug" className="text-sm font-medium">
+                <label
+                  htmlFor="service-slug"
+                  className="text-sm font-medium"
+                >
                   Slug *
                 </label>
+
                 <input
                   id="service-slug"
                   value={form.slug}
@@ -288,10 +383,15 @@ const services: Service[] = Array.isArray(data?.data?.data)
                 />
               </div>
 
+              {/* Base Price */}
               <div className="space-y-1">
-                <label htmlFor="service-price" className="text-sm font-medium">
+                <label
+                  htmlFor="service-price"
+                  className="text-sm font-medium"
+                >
                   Base Price *
                 </label>
+
                 <input
                   id="service-price"
                   type="number"
@@ -310,6 +410,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
                 />
               </div>
 
+              {/* Duration */}
               <div className="space-y-1">
                 <label
                   htmlFor="service-duration"
@@ -317,6 +418,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
                 >
                   Duration (Minutes)
                 </label>
+
                 <input
                   id="service-duration"
                   type="number"
@@ -335,6 +437,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
               </div>
             </div>
 
+            {/* Description */}
             <div className="space-y-1">
               <label
                 htmlFor="service-description"
@@ -342,6 +445,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
               >
                 Description
               </label>
+
               <textarea
                 id="service-description"
                 value={form.description}
@@ -363,12 +467,9 @@ const services: Service[] = Array.isArray(data?.data?.data)
               </p>
             )}
 
+            {/* Form Actions */}
             <div className="flex flex-wrap gap-3">
-              <Button
-                type="submit"
-                disabled={isSaving}
-                className="rounded-md px-4 py-2 text-white "
-              >
+              <Button type="submit" disabled={isSaving}>
                 {isSaving
                   ? "Saving..."
                   : editingService
@@ -380,9 +481,7 @@ const services: Service[] = Array.isArray(data?.data?.data)
                 type="button"
                 onClick={resetForm}
                 disabled={isSaving}
-                className="rounded-md border px-4 py-2"
                 variant="outline"
-                // variant={"destructive"}
               >
                 Cancel
               </Button>
@@ -391,78 +490,21 @@ const services: Service[] = Array.isArray(data?.data?.data)
         </div>
       )}
 
-      {isLoading ? (
-        <p className="py-8 text-center">Loading services...</p>
-      ) : isError ? (
+      {/* Services DataTable */}
+      {isError ? (
         <p role="alert" className="py-8 text-center text-red-600">
           Failed to load services. Please try again.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-4 py-3">Service</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Base Price</th>
-                <th className="px-4 py-3">Duration</th>
-                <th className="px-4 py-3">Slug</th>
-                <th className="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {services.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center">
-                    No services found.
-                  </td>
-                </tr>
-              ) : (
-                services.map((service) => (
-                  <tr key={service.id} className="border-t">
-                    <td className="px-4 py-3 font-medium">{service.name}</td>
-                    <td className="px-4 py-3">
-                      {service.category?.name ??
-                        categories.find(
-                          (category) => category.id === service.categoryId,
-                        )?.name ??
-                        "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      {Number(service.basePrice).toFixed(2)}
-                    </td>
-                    <td className="px-4 py-3">
-                      {service.durationMinutes == null
-                        ? "—"
-                        : `${service.durationMinutes} min`}
-                    </td>
-                    <td className="px-4 py-3">{service.slug}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          onClick={() => openUpdateForm(service)}
-                          className="rounded border px-3 py-1 hover:bg-green-600"
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          type="button"
-                          onClick={() => handleDelete(service)}
-                          disabled={deleteMutation.isPending}
-                          className="bg-red-100 hover:bg-red-400 text-red-600" variant="destructive"
-                        >
-                          Delete
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          columns={columns}
+          data={services}
+          isLoading={isLoading}
+          skeletonRows={5}
+          caption="A list of all marketplace services."
+          emptyTitle="No services found"
+          emptyDescription="Create a service to get started."
+        />
       )}
     </section>
   );

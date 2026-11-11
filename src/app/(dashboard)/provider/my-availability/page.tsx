@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -15,6 +14,8 @@ import type {
 import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import AvailabilityCardSkeleton from "@/components/shared/availability-card-skeleton";
 
 const days = [
   "Sunday",
@@ -176,10 +177,6 @@ export default function ProviderAvailabilityPage() {
     });
   };
 
-  if (availabilityQuery.isLoading) {
-    return <div className="p-6">Loading availability...</div>;
-  }
-
   if (availabilityQuery.isError) {
     return (
       <div className="p-6 text-red-500">
@@ -190,6 +187,7 @@ export default function ProviderAvailabilityPage() {
 
   return (
     <div className="space-y-6 p-6">
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">My Availability</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -198,103 +196,128 @@ export default function ProviderAvailabilityPage() {
       </div>
 
       {/* Create / Update Form */}
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-4 rounded-lg border p-5"
-      >
-        <h2 className="text-lg font-semibold">
-          {editingId ? "Update Schedule" : "Add New Schedule"}
-        </h2>
+      {availabilityQuery.isLoading ? (
+        <div className="space-y-4 rounded-lg border p-5">
+          <Skeleton className="h-6 w-40" />
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <label htmlFor="dayOfWeek" className="text-sm font-medium">
-              Day
-            </label>
-            <select
-              id="dayOfWeek"
-              value={form.dayOfWeek}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  dayOfWeek: Number(e.target.value),
-                })
-              }
-              disabled={!!editingId}
-              className="w-full rounded-md border bg-background p-2"
-            >
-              {days.map((day, index) => (
-                <option key={day} value={index}>
-                  {day}
-                </option>
-              ))}
-            </select>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="startTime" className="text-sm font-medium">
-              Start Time
-            </label>
-            <Input
-              id="startTime"
-              type="time"
-              value={form.startTime}
-              onChange={(e) =>
-                setForm({ ...form, startTime: e.target.value })
-              }
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="endTime" className="text-sm font-medium">
-              End Time
-            </label>
-            <Input
-              id="endTime"
-              type="time"
-              value={form.endTime}
-              onChange={(e) =>
-                setForm({ ...form, endTime: e.target.value })
-              }
-              required
-            />
-          </div>
+          <Skeleton className="h-5 w-36" />
+          <Skeleton className="h-10 w-32" />
         </div>
+      ) : (
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 rounded-lg border p-5"
+        >
+          <h2 className="text-lg font-semibold">
+            {editingId ? "Update Schedule" : "Add New Schedule"}
+          </h2>
 
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={form.isAvailable ?? true}
-            onChange={(e) =>
-              setForm({ ...form, isAvailable: e.target.checked })
-            }
-          />
-          Available on this day
-        </label>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <label htmlFor="dayOfWeek" className="text-sm font-medium">
+                Day
+              </label>
 
-        <div className="flex flex-wrap gap-2">
-          <Button type="submit" disabled={isSaving}>
-            {isSaving
-              ? "Saving..."
-              : editingId
-                ? "Update Schedule"
-                : "Add Schedule"}
-          </Button>
+              <select
+                id="dayOfWeek"
+                value={form.dayOfWeek}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    dayOfWeek: Number(e.target.value),
+                  })
+                }
+                disabled={!!editingId}
+                className="w-full rounded-md border bg-background p-2"
+              >
+                {days.map((day, index) => (
+                  <option key={day} value={index}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-          {editingId && (
-            <Button type="button" variant="outline" onClick={resetForm}>
-              Cancel
+            <div className="space-y-2">
+              <label htmlFor="startTime" className="text-sm font-medium">
+                Start Time
+              </label>
+
+              <Input
+                id="startTime"
+                type="time"
+                value={form.startTime}
+                onChange={(e) =>
+                  setForm({ ...form, startTime: e.target.value })
+                }
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label htmlFor="endTime" className="text-sm font-medium">
+                End Time
+              </label>
+
+              <Input
+                id="endTime"
+                type="time"
+                value={form.endTime}
+                onChange={(e) =>
+                  setForm({ ...form, endTime: e.target.value })
+                }
+                required
+              />
+            </div>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={form.isAvailable ?? true}
+              onChange={(e) =>
+                setForm({ ...form, isAvailable: e.target.checked })
+              }
+            />
+            Available on this day
+          </label>
+
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" disabled={isSaving}>
+              {isSaving
+                ? "Saving..."
+                : editingId
+                  ? "Update Schedule"
+                  : "Add Schedule"}
             </Button>
-          )}
-        </div>
-      </form>
+
+            {editingId && (
+              <Button type="button" variant="outline" onClick={resetForm}>
+                Cancel
+              </Button>
+            )}
+          </div>
+        </form>
+      )}
 
       {/* Availability List */}
       <div className="space-y-4">
         <h2 className="text-lg font-semibold">Weekly Schedule</h2>
 
-        {availability.length === 0 ? (
+        {availabilityQuery.isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+<AvailabilityCardSkeleton key={index} />
+            ))}
+          </div>
+        ) : availability.length === 0 ? (
           <div className="rounded-lg border p-6 text-center text-muted-foreground">
             No availability schedule added yet.
           </div>
@@ -308,9 +331,11 @@ export default function ProviderAvailabilityPage() {
                 <h3 className="font-semibold">
                   {days[item.dayOfWeek] ?? "Unknown day"}
                 </h3>
+
                 <p className="text-sm text-muted-foreground">
                   {item.startTime} - {item.endTime}
                 </p>
+
                 <p
                   className={`mt-1 text-sm ${
                     item.isAvailable ? "text-green-600" : "text-red-500"
@@ -357,4 +382,3 @@ export default function ProviderAvailabilityPage() {
     </div>
   );
 }
-

@@ -1,19 +1,14 @@
-
 "use client";
 
 import { useState } from "react";
-import {
-  RefreshCw,
-  Star,
-  MessageSquare,
-  PenLine,
-  X,
-} from "lucide-react";
+import { RefreshCw, Star, MessageSquare, PenLine, X } from "lucide-react";
 import {
   useGetMyReviews,
   useGetMyBookings,
   useCreateCustomerReview,
 } from "@/hooks/customer.hook";
+import { Skeleton } from "@/components/ui/skeleton";
+import CustomerReviewCardSkeleton from "@/components/shared/customer-review-card-skeleton";
 
 type Review = {
   id: string;
@@ -106,19 +101,14 @@ export default function CustomerReviewsPage() {
 
   const createReview = useCreateCustomerReview();
 
-  const [selectedBooking, setSelectedBooking] =
-    useState<Booking | null>(null);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState("");
 
-  const reviewResponse = reviewData as
-    | { data?: Review[] }
-    | undefined;
+  const reviewResponse = reviewData as { data?: Review[] } | undefined;
 
-  const bookingResponse = bookingData as
-    | { data?: Booking[] }
-    | undefined;
+  const bookingResponse = bookingData as { data?: Booking[] } | undefined;
 
   const reviews = Array.isArray(reviewResponse?.data)
     ? reviewResponse.data
@@ -128,24 +118,18 @@ export default function CustomerReviewsPage() {
     ? bookingResponse.data
     : [];
 
-  const reviewedBookingIds = new Set(
-    reviews.map((review) => review.bookingId),
-  );
+  const reviewedBookingIds = new Set(reviews.map((review) => review.bookingId));
 
   const pendingBookings = bookings.filter(
     (booking) =>
-      booking.status === "COMPLETED" &&
-      !reviewedBookingIds.has(booking.id),
+      booking.status === "COMPLETED" && !reviewedBookingIds.has(booking.id),
   );
 
   const averageRating = reviews.length
-    ? reviews.reduce((sum, review) => sum + review.rating, 0) /
-      reviews.length
+    ? reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length
     : 0;
 
-  const positiveReviews = reviews.filter(
-    (review) => review.rating >= 4,
-  ).length;
+  const positiveReviews = reviews.filter((review) => review.rating >= 4).length;
 
   async function handleSubmitReview() {
     if (!selectedBooking) return;
@@ -166,56 +150,60 @@ export default function CustomerReviewsPage() {
   }
 
   async function handleRefresh() {
-    await Promise.all([
-      refetchReviews(),
-      refetchBookings(),
-    ]);
+    await Promise.all([refetchReviews(), refetchBookings()]);
   }
 
   return (
     <div className="space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            My Reviews
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Share your experience and view your submitted reviews.
-          </p>
+        <div className="space-y-2">
+          {reviewsLoading || bookingsLoading ? (
+            <>
+              <Skeleton className="h-7 w-36" />
+              <Skeleton className="h-4 w-64 max-w-full" />
+            </>
+          ) : (
+            <>
+              <h1 className="text-2xl font-bold tracking-tight">My Reviews</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Share your experience and view your submitted reviews.
+              </p>
+            </>
+          )}
         </div>
 
-        <button
-          type="button"
-          onClick={handleRefresh}
-          disabled={isFetching}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
-        >
-          <RefreshCw
-            size={16}
-            className={isFetching ? "animate-spin" : ""}
-          />
-          Refresh
-        </button>
+        {reviewsLoading || bookingsLoading ? (
+          <Skeleton className="h-10 w-28 rounded-lg" />
+        ) : (
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={isFetching}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted disabled:opacity-50"
+          >
+            <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
+            Refresh
+          </button>
+        )}
       </div>
 
       {/* Summary */}
       <div className="grid gap-4 sm:grid-cols-3">
         <SummaryCard
           title="Total Reviews"
-          value={reviewsLoading ? "..." : reviews.length}
+          value={reviews.length}
+          isLoading={reviewsLoading}
         />
         <SummaryCard
           title="Average Rating"
-          value={
-            reviewsLoading
-              ? "..."
-              : `${averageRating.toFixed(1)} / 5`
-          }
+          value={`${averageRating.toFixed(1)} / 5`}
+          isLoading={reviewsLoading}
         />
         <SummaryCard
           title="Positive Reviews"
-          value={reviewsLoading ? "..." : positiveReviews}
+          value={positiveReviews}
+          isLoading={reviewsLoading}
         />
       </div>
 
@@ -229,8 +217,21 @@ export default function CustomerReviewsPage() {
         </div>
 
         {bookingsLoading ? (
-          <div className="rounded-xl border p-6 text-center text-sm text-muted-foreground">
-            Loading completed bookings...
+          <div className="space-y-3">
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                key={index}
+                className="flex flex-col justify-between gap-4 rounded-xl border p-5 sm:flex-row sm:items-center"
+              >
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-40" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <Skeleton className="h-10 w-32 rounded-lg" />
+              </div>
+            ))}
           </div>
         ) : pendingBookings.length === 0 ? (
           <div className="rounded-xl border border-dashed p-6 text-center">
@@ -252,8 +253,7 @@ export default function CustomerReviewsPage() {
               >
                 <div>
                   <h3 className="font-semibold">
-                    {booking.serviceRequest?.service?.name ??
-                      "Service"}
+                    {booking.serviceRequest?.service?.name ?? "Service"}
                   </h3>
                   <p className="mt-1 text-sm text-muted-foreground">
                     Provider: {booking.provider?.name ?? "Provider"}
@@ -301,9 +301,7 @@ export default function CustomerReviewsPage() {
 
           <div className="space-y-5">
             <div>
-              <p className="mb-2 text-sm font-medium">
-                Your Rating
-              </p>
+              <p className="mb-2 text-sm font-medium">Your Rating</p>
 
               <div className="flex items-center gap-2">
                 {Array.from({ length: 5 }, (_, index) => {
@@ -328,9 +326,7 @@ export default function CustomerReviewsPage() {
                   );
                 })}
 
-                <span className="ml-2 text-sm font-medium">
-                  {rating}/5
-                </span>
+                <span className="ml-2 text-sm font-medium">{rating}/5</span>
               </div>
             </div>
 
@@ -380,9 +376,7 @@ export default function CustomerReviewsPage() {
                 disabled={createReview.isPending}
                 className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {createReview.isPending
-                  ? "Submitting..."
-                  : "Submit Review"}
+                {createReview.isPending ? "Submitting..." : "Submit Review"}
               </button>
             </div>
           </div>
@@ -399,18 +393,17 @@ export default function CustomerReviewsPage() {
         </div>
 
         {reviewsLoading ? (
-          <div className="rounded-xl border p-10 text-center text-sm text-muted-foreground">
-            Loading reviews...
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+              <CustomerReviewCardSkeleton key={index} />
+            ))}
           </div>
         ) : isError ? (
           <div className="rounded-xl border p-8 text-center">
-            <p className="font-medium text-red-600">
-              Failed to load reviews.
-            </p>
+            <p className="font-medium text-red-600">Failed to load reviews.</p>
             <p className="mt-2 text-sm text-muted-foreground">
-              {error instanceof Error
-                ? error.message
-                : "Please try again."}
+              {error instanceof Error ? error.message : "Please try again."}
             </p>
             <button
               type="button"
@@ -465,8 +458,7 @@ export default function CustomerReviewsPage() {
                   <RatingStars rating={review.rating} />
 
                   <p className="text-sm leading-6">
-                    {review.comment?.trim() ||
-                      "No written comment provided."}
+                    {review.comment?.trim() || "No written comment provided."}
                   </p>
                 </article>
               );
@@ -481,14 +473,25 @@ export default function CustomerReviewsPage() {
 function SummaryCard({
   title,
   value,
+  isLoading = false,
 }: {
   title: string;
   value: string | number;
+  isLoading?: boolean;
 }) {
   return (
     <div className="rounded-xl border p-5">
-      <p className="text-sm text-muted-foreground">{title}</p>
-      <p className="mt-2 text-2xl font-bold">{value}</p>
+      {isLoading ? (
+        <>
+          <Skeleton className="h-4 w-28" />
+          <Skeleton className="mt-3 h-8 w-20" />
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-muted-foreground">{title}</p>
+          <p className="mt-2 text-2xl font-bold">{value}</p>
+        </>
+      )}
     </div>
   );
 }
