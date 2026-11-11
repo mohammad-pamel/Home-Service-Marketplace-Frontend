@@ -8,6 +8,7 @@ import {
 } from "@/hooks/provider.hook";
 import type { ProviderProfilePayload } from "@/types/provider.type";
 import { toast } from "@/components/ui/toast";
+import ProfileImageUpload from "@/components/shared/profile-image-upload";
 
 const emptyForm: ProviderProfilePayload = {
   bio: "",
@@ -25,7 +26,7 @@ export default function ProviderProfilePage() {
   const createMutation = useCreateProviderProfile();
   const updateMutation = useUpdateProviderProfile();
 
-  const profile = profileQuery.data
+  const profile = profileQuery.data;
 
   useEffect(() => {
     if (profile) {
@@ -113,10 +114,11 @@ export default function ProviderProfilePage() {
         </div>
       )}
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-5 rounded-xl border p-6"
-      >
+      <form onSubmit={handleSubmit} className="space-y-5 rounded-xl border p-6">
+        <ProfileImageUpload
+          imageUrl={profile?.user?.imageUrl}
+          userType="provider"
+        />
         <div className="space-y-2">
           <label htmlFor="bio" className="text-sm font-medium">
             Professional Bio

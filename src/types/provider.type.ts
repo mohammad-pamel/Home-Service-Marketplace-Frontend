@@ -49,12 +49,13 @@ export interface ProviderProfile {
   createdAt: string;
   updatedAt: string;
   user: {
-    id: string;
-    name: string;
-    email: string;
-    phone?: string | null;
-    status: string;
-  };
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  imageUrl?: string | null;
+  status: string;
+};
 }
 
 // export interface Assignment {

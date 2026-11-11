@@ -38,6 +38,7 @@ import {
 
 import type { CreateProviderServicePayload, ProviderProfilePayload, UpdateProviderServicePayload } from "@/types/provider.type";
 import { CreateAvailabilityPayload, CreateEstimatePayload, UpdateAvailabilityPayload, UpdateEstimatePayload, UpdateWorkLogPayload } from "@/types";
+import { uploadMyProfileImage } from "@/api";
 
 
 const PROVIDER_PROFILE_KEY = ["provider-profile"];
@@ -78,6 +79,24 @@ export const useUpdateProviderProfile = () => {
   });
 };
 
+// Upload Provider Profile Image
+export function useUploadProviderProfileImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: uploadMyProfileImage,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["provider-profile"],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: ["customer-profile"],
+        }),
+      ]);
+    },
+  });
+}
 
 
 

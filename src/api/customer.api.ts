@@ -100,6 +100,18 @@ export function updateMyProfile(payload: {
   });
 }
 
+// Upload logged-in user's profile image
+export function uploadMyProfileImage(file: File) {
+  const formData = new FormData();
+
+  formData.append("profileImage", file);
+
+  return apiClient("/user/profile-image", {
+    method: "PATCH",
+    body: formData,
+  });
+}
+
 
 // Service Request related api
 
@@ -111,3 +123,5 @@ export async function createServiceRequest(
     body: payload,
   });
 }
+
+

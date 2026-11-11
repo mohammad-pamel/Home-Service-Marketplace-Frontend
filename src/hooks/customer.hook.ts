@@ -16,6 +16,7 @@ import {
   rejectCustomerEstimate,
   approveCustomerEstimate,
   createCustomerReview,
+  uploadMyProfileImage,
 } from "@/api/customer.api";
 
 export function useGetMyServiceRequests() {
@@ -164,6 +165,20 @@ export function useUpdateMyProfile() {
     mutationFn: updateMyProfile,
     onSuccess: () => {
       queryClient.invalidateQueries({
+        queryKey: ["customer-profile"],
+      });
+    },
+  });
+}
+
+// Upload Customer Profile Image
+export function useUploadMyProfileImage() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: uploadMyProfileImage,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
         queryKey: ["customer-profile"],
       });
     },
