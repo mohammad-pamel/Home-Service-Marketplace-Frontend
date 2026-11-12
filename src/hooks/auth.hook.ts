@@ -1,11 +1,21 @@
 import { forgotPassword, getMe, googleOAuth, resetPassword, userLogin, userLogout, userRegistration, verifyAccount } from "@/api";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+
 
 export function useLogin() {
-    return useMutation({
-        mutationFn: userLogin,
-    })
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: userLogin,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["user"],
+      });
+    },
+  });
 }
+
 export function useVerifyAccount() {
     return useMutation({
         mutationFn: verifyAccount,
