@@ -43,167 +43,191 @@ export default function LoginForm() {
         password: value.password,
       };
 
-      //   login(loginData, {
-      //       onSuccess: (res) => {
-      //           toast.add({
-      //             title: "Login Success",
-      //             description: "Welcome back",
-      //             type: "success",
-      //         });
-      //           router.push('/');
-      //           // console.log(res);
-      //       },
-      //       onError: (err) => {
-      //            toast.add({
-      //             title: "Authorization failure",
-      //             description: err.message || "Something went wrong. Please try again",
-      //             type: "error",
-      // });
-      //           console.log(err);
-      //       }
-      //   }
-      //   );
+        login(loginData, {
+            onSuccess: (res) => {
+                toast.add({
+                  title: "Login Success",
+                  description: "Welcome back",
+                  type: "success",
+              });
+                router.push('/');
+                // console.log(res);
+            },
+            onError: (err) => {
+                 toast.add({
+                  title: "Authorization failure",
+                  description: err.message || "Something went wrong. Please try again",
+                  type: "error",
+      });
+                console.log(err);
+            }
+        }
+        );
 
-      // login(loginData, {
-      //   onSuccess: async () => {
-      //     try {
-      //       // Fetch logged-in user information
-      //       const response = await queryClient.fetchQuery({
-      //         queryKey: ["user"],
-      //         queryFn: getMe,
-      //       });
+      login(loginData, {
+        onSuccess: async () => {
+          try {
+            // Fetch logged-in user information
+            const response = await queryClient.fetchQuery({
+              queryKey: ["user"],
+              queryFn: getMe,
+            });
 
-      //       // Get user role
-      //       const role = response?.data?.role;
+            // Get user role
+            const role = response?.data?.role;
 
-      //       // Role-based dashboard routes
-      //       const dashboardRoute: Record<string, string> = {
-      //         SUPER_ADMIN: "/admin",
-      //         ADMIN: "/admin",
-      //         PROVIDER: "/provider",
-      //         CUSTOMER: "/customer",
-      //       };
+            // Role-based dashboard routes
+            const dashboardRoute: Record<string, string> = {
+              SUPER_ADMIN: "/admin",
+              ADMIN: "/admin",
+              PROVIDER: "/provider",
+              CUSTOMER: "/customer",
+            };
 
-      //       const redirectPath = dashboardRoute[role];
+            const redirectPath = dashboardRoute[role];
 
-      //       if (!redirectPath) {
-      //         toast.add({
-      //           title: "Login Successful",
-      //           description: "User role not found. Please contact support.",
-      //           type: "error",
-      //         });
-      //         return;
-      //       }
+            if (!redirectPath) {
+              toast.add({
+                title: "Login Successful",
+                description: "User role not found. Please contact support.",
+                type: "error",
+              });
+              return;
+            }
 
-      //       toast.add({
-      //         title: "Login Success",
-      //         description: "Welcome back",
-      //         type: "success",
-      //       });
+            toast.add({
+              title: "Login Success",
+              description: "Welcome back",
+              type: "success",
+            });
 
-      //       router.replace(redirectPath);
-      //     } catch (err) {
-      //       toast.add({
-      //         title: "Login Successful",
-      //         description:
-      //           "Could not load your account information. Please try again.",
-      //         type: "error",
-      //       });
+            router.replace(redirectPath);
+          } catch (err) {
+            toast.add({
+              title: "Login Successful",
+              description:
+                "Could not load your account information. Please try again.",
+              type: "error",
+            });
 
-      //       console.error(err);
-      //     }
-      //   },
+            console.error(err);
+          }
+        },
 
-      //   onError: (err) => {
-      //     toast.add({
-      //       title: "Authorization failure",
-      //       description:
-      //         err.message || "Something went wrong. Please try again",
-      //       type: "error",
-      //     });
+        onError: (err) => {
+          toast.add({
+            title: "Authorization failure",
+            description:
+              err.message || "Something went wrong. Please try again",
+            type: "error",
+          });
 
-      //     console.log(err);
-      //   },
-      // });
+          console.log(err);
+        },
+      });
 
       
-login(loginData, {
-  onSuccess: async () => {
-    try {
-      // Login successful, fetch fresh user information
-      const response = await queryClient.fetchQuery({
-        queryKey: ["user"],
-        queryFn: getMe,
-        staleTime: 0,
-      });
+// login(loginData, {
+//   onSuccess: async () => {
+//     try {
+//       // Login successful, fetch fresh user information
+//       // const response = await queryClient.fetchQuery({
+//       //   queryKey: ["user"],
+//       //   queryFn: getMe,
+//       //   staleTime: 0,
+//       // });
 
-      console.log("LOGIN RESPONSE:", response);
-console.log("LOGIN ROLE:", response?.data?.role);
+// //       const response = await queryClient.fetchQuery({
+// //   queryKey: ["user"],
+// //   queryFn: getMe,
+// //   staleTime: 60 * 1000,
+// // });
 
-      const user = response?.data;
+// const role = response?.data?.role;
 
-      if (!user?.role) {
-        throw new Error("User role information not found.");
-      }
+// const dashboardRoute = {
+//   SUPER_ADMIN: "/admin",
+//   ADMIN: "/admin",
+//   PROVIDER: "/provider",
+//   CUSTOMER: "/customer",
+// };
 
-      const dashboardRoute: Record<string, string> = {
-        SUPER_ADMIN: "/admin",
-        ADMIN: "/admin",
-        PROVIDER: "/provider",
-        CUSTOMER: "/customer",
-      };
+// const redirectPath =
+//   dashboardRoute[role as keyof typeof dashboardRoute];
 
-      const roleBasedRoute = dashboardRoute[user.role];
+// if (redirectPath) {
+//   router.replace(redirectPath);
+// } else {
+//   router.replace("/");
+// }
 
-      if (!roleBasedRoute) {
-        throw new Error("Invalid user role.");
-      }
+//       console.log("LOGIN RESPONSE:", response);
+// console.log("LOGIN ROLE:", response?.data?.role);
 
-      // Update React Query cache with the authenticated user
-      queryClient.setQueryData(["user"], response);
+//       const user = response?.data;
 
-      // Read redirect query parameter from login URL
-      const requestedRedirect = new URLSearchParams(
-        window.location.search
-      ).get("redirect");
+//       if (!user?.role) {
+//         throw new Error("User role information not found.");
+//       }
 
-      // Only allow the dashboard route assigned to this user's role
-      const redirectPath =
-        requestedRedirect === roleBasedRoute
-          ? requestedRedirect
-          : roleBasedRoute;
+//       // const dashboardRoute: Record<string, string> = {
+//       //   SUPER_ADMIN: "/admin",
+//       //   ADMIN: "/admin",
+//       //   PROVIDER: "/provider",
+//       //   CUSTOMER: "/customer",
+//       // };
 
-      toast.add({
-        title: "Login Success",
-        description: "Welcome back",
-        type: "success",
-      });
+//       // const roleBasedRoute = dashboardRoute[user.role];
 
-      router.replace(redirectPath);
-      router.refresh();
-    } catch (err) {
-      toast.add({
-        title: "Login Successful",
-        description:
-          "Could not load your account information. Please try again.",
-        type: "error",
-      });
+//       // if (!roleBasedRoute) {
+//       //   throw new Error("Invalid user role.");
+//       // }
 
-      console.error("Login user information error:", err);
-    }
-  },
+//       // Update React Query cache with the authenticated user
+//       queryClient.setQueryData(["user"], response);
 
-  onError: (err) => {
-    toast.add({
-      title: "Authorization failure",
-      description:
-        err.message || "Something went wrong. Please try again",
-      type: "error",
-    });
+//       // Read redirect query parameter from login URL
+//       const requestedRedirect = new URLSearchParams(
+//         window.location.search
+//       ).get("redirect");
 
-    console.error(err);
-  },
-});
+//       // Only allow the dashboard route assigned to this user's role
+//       // const redirectPath =
+//       //   requestedRedirect === roleBasedRoute
+//       //     ? requestedRedirect
+//       //     : roleBasedRoute;
+
+//       toast.add({
+//         title: "Login Success",
+//         description: "Welcome back",
+//         type: "success",
+//       });
+
+//       router.replace(redirectPath);
+//       router.refresh();
+//     } catch (err) {
+//       toast.add({
+//         title: "Login Successful",
+//         description:
+//           "Could not load your account information. Please try again.",
+//         type: "error",
+//       });
+
+//       console.error("Login user information error:", err);
+//     }
+//   },
+
+//   onError: (err) => {
+//     toast.add({
+//       title: "Authorization failure",
+//       description:
+//         err.message || "Something went wrong. Please try again",
+//       type: "error",
+//     });
+
+//     console.error(err);
+//   },
+// });
 
 
     },

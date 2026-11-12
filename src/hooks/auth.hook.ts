@@ -16,6 +16,12 @@ export function useLogin() {
   });
 }
 
+// export function useLogin() {
+//   return useMutation({
+//     mutationFn: userLogin,
+//   });
+// }
+
 export function useVerifyAccount() {
     return useMutation({
         mutationFn: verifyAccount,
@@ -47,6 +53,23 @@ export function useGetMe() {
         retry: false
     })
 }
+
+// export function useGetMe() {
+//   return useQuery({
+//     queryKey: ["user"],
+//     queryFn: getMe,
+//     retry: false,
+//     staleTime: 0,
+//   });
+// }
+// export function useGetMe() {
+//   return useQuery({
+//     queryKey: ["user"],
+//     queryFn: getMe,
+//     retry: false,
+//     staleTime: 60 * 1000,
+//   });
+// }
 
 
 export function useForgotPassword() {

@@ -11,6 +11,7 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
   const { data, isPending, isError } = useGetMe();
 
   const user = data?.data;
+  
   console.log("AuthGuard Debug:", {
   data,
   user,
