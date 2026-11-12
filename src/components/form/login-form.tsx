@@ -137,6 +137,9 @@ login(loginData, {
         staleTime: 0,
       });
 
+      console.log("LOGIN RESPONSE:", response);
+console.log("LOGIN ROLE:", response?.data?.role);
+
       const user = response?.data;
 
       if (!user?.role) {
