@@ -20,7 +20,18 @@ export default function RoleGuard({ children, roles }: IProps) {
 
   const user = data?.data;
 
+  
+
   const isAuthorized = !!user && roles.includes(user.role);
+
+  console.log("ROLE GUARD DEBUG:", {
+  data,
+  user,
+  isPending,
+  isError,
+  roles,
+  isAuthorized,
+});
 
   useEffect(() => {
     if (isPending) {
