@@ -11,6 +11,7 @@ and work progress. Administrators manage and monitor the platform.
   Application   URL
   ------------- ------------------------------------------------------
   Frontend      https://home-service-marketplace-frontend.vercel.app
+  
   Backend       https://home-service-marketplace-backend.vercel.app
 
 Backend health check:
